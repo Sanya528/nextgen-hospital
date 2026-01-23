@@ -1,0 +1,30 @@
+<div class="card form-card">
+<h2 class="form-title">Book Appointment</h2>
+
+<form method="post" action="/book-appointment">
+
+<label>Select Doctor</label>
+<select name="doctor" required>
+{% for d in doctors %}
+<option>{{ d.name }}</option>
+{% endfor %}
+</select>
+
+<div class="form-grid">
+<div>
+<label>Date</label>
+<input type="date" name="date" required>
+</div>
+
+<div>
+<label>Time</label>
+<input type="time" name="time" required>
+</div>
+</div>
+
+<div class="form-actions">
+<button>Book Appointment</button>
+</div>
+
+</form>
+</div>

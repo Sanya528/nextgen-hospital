@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card">
+<h2 class="section-title">My Profile</h2>
+
+<p><b>Name:</b> {{ user.name }}</p>
+<p><b>Email:</b> {{ user.email }}</p>
+<p><b>DOB:</b> {{ user.dob }}</p>
+<p><b>Blood Group:</b> {{ user.blood }}</p>
+<p><b>Allergies:</b> {{ user.allergies }}</p>
+<p><b>Diseases:</b> {{ user.diseases }}</p>
+
+</div>
+
+{% endblock %}

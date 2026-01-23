@@ -1,41 +1,38 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Next-Gen Hospital</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
+{% extends "base.html" %}
+{% block content %}
 
-<div class="navbar">
-    <h2>Next-Gen Hospital</h2>
-    <div>
-        <a href="/">Home</a>
-        <a href="/about">About</a>
-        <a href="/login">Login</a>
-        <a href="/signup">Register</a>
-    </div>
-</div>
+{% with messages = get_flashed_messages() %}
+{% for msg in messages %}
+<p class="alert">{{ msg }}</p>
+{% endfor %}
+{% endwith %}
 
-<div class="container">
+<div class="card center">
+    <h1 class="section-title">Next-Gen Hospital Platform</h1>
+    <p>Secure Healthcare • Patient Records • Online Appointments</p>
 
-<div class="card" style="text-align:center;">
-    <h1 style="color:#0d6efd;">Smart Patient Appointment Platform</h1>
-    <br>
     <a href="/login"><button>Login</button></a>
-    <a href="/signup"><button style="background:gray;">Register</button></a>
+    <a href="/register"><button style="background:gray;">Register</button></a>
 </div>
 
 <div class="card">
-    <h3 style="color:#0d6efd;">Key Features</h3>
+    <h3 class="section-title">Platform Features</h3>
     <ul>
         <li>Patient Medical Profile Management</li>
         <li>Online Doctor Appointment Booking</li>
-        <li>Admin Controlled Doctor Listing</li>
-        <li>Secure and Cloud-Ready Architecture</li>
+        <li>Admin Doctor & Appointment Management</li>
+        <li>Health Tips & Wellness Guidance</li>
+        <li>AWS Cloud Ready Architecture</li>
     </ul>
 </div>
 
+<div class="card">
+    <h3 class="section-title">Featured Health Tips</h3>
+    <ul>
+        {% for t in tips %}
+        <li><b>{{ t.title }}</b> — {{ t.content }}</li>
+        {% endfor %}
+    </ul>
 </div>
 
-</body>
-</html>
+{% endblock %}

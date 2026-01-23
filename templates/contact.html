@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card form-card">
+<h2 class="form-title">Contact Us</h2>
+
+<form method="post">
+
+<label>Your Name</label>
+<input name="name" placeholder="Enter your name" required>
+
+<label>Your Email</label>
+<input name="email" placeholder="Enter your email" required>
+
+<label>Your Message</label>
+<textarea name="message" placeholder="Type your message" required></textarea>
+
+<div class="form-actions">
+<button>Send Message</button>
+</div>
+
+</form>
+
+{% with messages = get_flashed_messages() %}
+{% for msg in messages %}
+<p style="color:green;text-align:center;font-weight:bold;">{{msg}}</p>
+{% endfor %}
+{% endwith %}
+
+</div>
+
+{% endblock %}

@@ -1,19 +1,8 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Login - Next-Gen Hospital</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
+{% extends "base.html" %}
+{% block content %}
 
-<div class="navbar">
-    <h2>Next-Gen Hospital Login</h2>
-</div>
-
-<div class="container">
-<div class="card">
-
-<h3>Patient / Admin Login</h3>
+<div class="card form-card">
+<h2 class="form-title">Login</h2>
 
 <form method="post">
 
@@ -23,30 +12,26 @@
 <label>Password</label>
 <input type="password" name="password" placeholder="Enter your password" required>
 
-<button type="submit">Login</button>
+<div class="form-actions">
+<button>Login</button>
+</div>
 
 </form>
 
-<!-- Flash Messages -->
 {% with messages = get_flashed_messages() %}
-  {% if messages %}
-    {% for msg in messages %}
-      <p style="color:red; font-weight:bold;">{{ msg }}</p>
-    {% endfor %}
-  {% endif %}
+{% for msg in messages %}
+<p class="alert">{{msg}}</p>
+{% endfor %}
 {% endwith %}
 
-<!-- Show Register Button if user not found -->
 {% if show_register %}
-<hr>
-<p>New patient?</p>
-<a href="/signup">
-    <button style="background:green;">Register Now</button>
+<div class="form-actions">
+<a href="/register">
+<button style="background:green;">Register Now</button>
 </a>
+</div>
 {% endif %}
 
 </div>
-</div>
 
-</body>
-</html>
+{% endblock %}

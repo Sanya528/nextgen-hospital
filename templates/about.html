@@ -1,56 +1,21 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>About - Next-Gen Hospital</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-
-<div class="navbar">
-    <h2>Next-Gen Hospital</h2>
-    <div>
-        <a href="/">Home</a>
-        <a href="/login">Login</a>
-        <a href="/signup">Register</a>
-    </div>
-</div>
-
-<div class="container">
+{% extends "base.html" %}
+{% block content %}
 
 <div class="card">
-<h2 style="color:#0d6efd;">About the Platform</h2>
+<h2 class="section-title">About Next-Gen Hospital</h2>
 
 <p>
-Next-Gen Hospital Appointment and Patient Data Platform is a smart healthcare solution designed to modernize hospital operations and improve patient experience.
+Next-Gen Hospital is a digital healthcare platform built to modernize patient 
+data management and doctor appointment booking.
 </p>
 
-<p>
-The system allows patients to securely register, store their medical profile, and book appointments with doctors online through an intuitive web interface.
-</p>
-
-<p>
-Administrators can manage doctors, monitor patient appointments, and maintain centralized hospital data efficiently.
-</p>
-</div>
-
-<div class="card">
-<h3 style="color:#0d6efd;">Technologies Used</h3>
 <ul>
-<li>Flask – Backend Framework</li>
-<li>HTML & CSS – Frontend UI</li>
-<li>Python Lists/Dictionaries – Local Data Storage (Prototype Phase)</li>
-<li>AWS Ready Architecture – EC2, DynamoDB, SNS (Future Deployment)</li>
+<li>Secure Patient Medical Profiles</li>
+<li>Online Appointment Scheduling</li>
+<li>Admin-Controlled Doctor Management</li>
+<li>Cloud-Ready AWS Architecture</li>
 </ul>
-</div>
-
-<div class="card">
-<h3 style="color:#0d6efd;">Project Objective</h3>
-<p>
-To build a secure, scalable, and cloud-ready hospital platform capable of managing patient data and doctor appointments with real-time updates and future AWS integration.
-</p>
-</div>
 
 </div>
 
-</body>
-</html>
+{% endblock %}

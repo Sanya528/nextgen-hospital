@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card">
+<h2 class="section-title">Our Doctors</h2>
+
+{% for d in doctors %}
+<div class="card">
+<b>{{ d.name }}</b> — {{ d.specialty }} <br>
+<a href="/doctor/{{ d.id }}"><button>View Profile</button></a>
+</div>
+{% endfor %}
+
+</div>
+
+{% endblock %}

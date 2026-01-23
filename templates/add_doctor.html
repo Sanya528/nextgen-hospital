@@ -1,9 +1,25 @@
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-<div class="navbar"><h2>Add Doctor</h2></div>
-<div class="container card">
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card form-card">
+<h2 class="form-title">Add Doctor</h2>
+
 <form method="post">
-<input name="name" placeholder="Doctor Name" required>
-<input name="department" placeholder="Department" required>
-<button>Add</button>
+
+<label>Doctor Name</label>
+<input name="name" placeholder="Doctor full name" required>
+
+<label>Specialty</label>
+<input name="specialty" placeholder="Department / Specialty" required>
+
+<label>Experience (Years)</label>
+<input name="experience" type="number" placeholder="Years of experience" required>
+
+<div class="form-actions">
+<button>Add Doctor</button>
+</div>
+
 </form>
 </div>
+
+{% endblock %}
