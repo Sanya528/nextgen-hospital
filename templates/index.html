@@ -1,38 +1,22 @@
 {% extends "base.html" %}
 {% block content %}
 
-{% with messages = get_flashed_messages() %}
-{% for msg in messages %}
-<p class="alert">{{ msg }}</p>
-{% endfor %}
-{% endwith %}
-
 <div class="card center">
-    <h1 class="section-title">Next-Gen Hospital Platform</h1>
-    <p>Secure Healthcare • Patient Records • Online Appointments</p>
+<img src="{{ url_for('static', filename='images/logo.png') }}" width="90">
+<h1 class="section-title">Next-Gen Hospital Platform</h1>
+<p>Secure Healthcare • Online Appointments • Digital Records</p>
 
-    <a href="/login"><button>Login</button></a>
-    <a href="/register"><button style="background:gray;">Register</button></a>
+<a href="/login"><button>Login</button></a>
+<a href="/register"><button style="background:gray;">Register</button></a>
 </div>
 
 <div class="card">
-    <h3 class="section-title">Platform Features</h3>
-    <ul>
-        <li>Patient Medical Profile Management</li>
-        <li>Online Doctor Appointment Booking</li>
-        <li>Admin Doctor & Appointment Management</li>
-        <li>Health Tips & Wellness Guidance</li>
-        <li>AWS Cloud Ready Architecture</li>
-    </ul>
-</div>
-
-<div class="card">
-    <h3 class="section-title">Featured Health Tips</h3>
-    <ul>
-        {% for t in tips %}
-        <li><b>{{ t.title }}</b> — {{ t.content }}</li>
-        {% endfor %}
-    </ul>
+<h3 class="section-title">Health Tips</h3>
+<ul>
+{% for t in tips %}
+<li><b>{{t.title}}</b> — {{t.content}}</li>
+{% endfor %}
+</ul>
 </div>
 
 {% endblock %}

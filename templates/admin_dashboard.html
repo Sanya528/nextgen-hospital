@@ -1,38 +1,59 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="card center">
-<h2 class="section-title">Admin Dashboard</h2>
-<a href="/add-doctor"><button>Add Doctor</button></a>
-</div>
+<h2 class="page-title">Admin Dashboard</h2>
 
-<div class="card">
-<h3 class="section-title">Doctors</h3>
-{% for d in doctors %}
-<p>{{ d.name }} — {{ d.specialty }}</p>
-{% endfor %}
-</div>
+<div class="section-card">
+<h3>Appointments</h3>
 
-<div class="card">
-<h3 class="section-title">Appointments</h3>
-<table>
-<tr><th>Patient</th><th>Doctor</th><th>Date</th><th>Status</th></tr>
+<table class="admin-table">
+
+<tr>
+<th>Patient</th>
+<th>Doctor</th>
+<th>Date</th>
+<th>Time</th>
+<th>Status</th>
+</tr>
+
 {% for a in appointments %}
 <tr>
-<td>{{ a.patient_name }}</td>
+<td>{{ a.patient_email }}</td>
 <td>{{ a.doctor }}</td>
 <td>{{ a.date }}</td>
+<td>{{ a.time }}</td>
 <td>{{ a.status }}</td>
 </tr>
 {% endfor %}
+
 </table>
 </div>
 
-<div class="card">
-<h3 class="section-title">Registered Patients</h3>
-{% for u in users %}
-<p>{{ u.name }} — {{ u.email }}</p>
+<div class="section-card">
+<h3>Registered Patients</h3>
+
+<table class="admin-table">
+<tr>
+<th>Name</th>
+<th>Email</th>
+<th>Blood Group</th>
+</tr>
+
+{% for p in patients %}
+<tr>
+<td>{{ p.name }}</td>
+<td>{{ p.email }}</td>
+<td>{{ p.blood }}</td>
+</tr>
 {% endfor %}
+
+</table>
+</div>
+
+<div class="section-card">
+<a href="/add-doctor">
+<button class="btn-primary">Add Doctor</button>
+</a>
 </div>
 
 {% endblock %}

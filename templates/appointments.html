@@ -1,30 +1,74 @@
-<div class="card form-card">
-<h2 class="form-title">Book Appointment</h2>
+{% extends "base.html" %}
+{% block content %}
+
+<div class="section-card appointment-card">
+
+<h2 class="page-title">Book Appointment</h2>
 
 <form method="post" action="/book-appointment">
 
+<div class="form-row">
 <label>Select Doctor</label>
-<select name="doctor" required>
+<select name="doctor">
 {% for d in doctors %}
-<option>{{ d.name }}</option>
+<option>{{ d.name }} — {{ d.specialty }}</option>
 {% endfor %}
 </select>
+</div>
 
 <div class="form-grid">
-<div>
-<label>Date</label>
-<input type="date" name="date" required>
-</div>
 
-<div>
-<label>Time</label>
-<input type="time" name="time" required>
-</div>
+  <div class="form-row">
+    <label>Date</label>
+    <input type="date" name="date" required>
+  </div>
+
+  <div class="form-row">
+    <label>Time</label>
+    <input type="time" name="time" required>
+  </div>
+
 </div>
 
 <div class="form-actions">
-<button>Book Appointment</button>
+<button class="btn-primary">Book Appointment</button>
 </div>
 
 </form>
 </div>
+
+<div class="section-card">
+
+<h2 class="page-title">Your Appointments</h2>
+
+<table class="appointment-table">
+
+<tr>
+<th>Doctor</th>
+<th>Date</th>
+<th>Time</th>
+<th>Status</th>
+<th>Action</th>
+</tr>
+
+{% for a in appointments %}
+<tr>
+<td>{{ a.doctor }}</td>
+<td>{{ a.date }}</td>
+<td>{{ a.time }}</td>
+<td>{{ a.status }}</td>
+<td>
+{% if a.status != "Cancelled" %}
+<a href="/cancel/{{a.id}}">
+<button class="btn-danger">Cancel</button>
+</a>
+{% endif %}
+</td>
+</tr>
+{% endfor %}
+
+</table>
+
+</div>
+
+{% endblock %}

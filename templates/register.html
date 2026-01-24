@@ -1,43 +1,57 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="card form-card">
+<div class="form-card">
 <h2 class="form-title">Patient Registration</h2>
 
 <form method="post">
 
+<div class="form-row">
 <label>Full Name</label>
-<input name="name" placeholder="Enter full name" required>
+<input name="name" required>
+</div>
 
+<div class="form-row">
 <label>Email</label>
-<input name="email" placeholder="Enter email" required>
+<input type="email" name="email" required>
+</div>
 
+<div class="form-row">
 <label>Password</label>
-<input name="password" type="password" placeholder="Create password" required>
+<input type="password" name="password" required>
+</div>
 
 <div class="form-grid">
-<div>
-<label>DOB</label>
-<input type="date" name="dob">
+
+  <div class="form-row">
+    <label>Date of Birth</label>
+    <input type="date" name="dob" required>
+  </div>
+
+  <div class="form-row">
+    <label>Blood Group</label>
+    <select name="blood">
+      <option>A+</option>
+      <option>B+</option>
+      <option>O+</option>
+      <option>AB+</option>
+    </select>
+  </div>
+
 </div>
 
-<div>
-<label>Blood Group</label>
-<select name="blood">
-<option>A+</option><option>B+</option><option>O+</option><option>AB+</option>
-<option>A-</option><option>B-</option><option>O-</option><option>AB-</option>
-</select>
-</div>
-</div>
-
+<div class="form-row">
 <label>Allergies</label>
-<input name="allergies" placeholder="If any">
+<input name="allergies">
+</div>
 
+<div class="form-row">
 <label>Previous Diseases</label>
-<input name="diseases" placeholder="If any">
+<input name="diseases">
+</div>
 
 <div class="form-actions">
-<button>Register</button>
+<button type="submit">Register</button>
 </div>
 
 </form>

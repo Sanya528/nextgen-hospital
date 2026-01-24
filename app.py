@@ -1,233 +1,193 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
+import uuid, random
 from datetime import datetime
-import uuid
-import random
 
 app = Flask(__name__)
-app.secret_key = "next_gen_secret"
+app.secret_key = "nextgen_secret"
 
-# LOCAL DATABASE
-users = []           # Patients
-doctors = []         # Doctors added by admin
-appointments = []    # Bookings
-contacts = []        # Contact messages
+patients = []
+doctors = []
+appointments = []
+contacts = []
 
-# ADMIN LOGIN
 ADMIN_EMAIL = "admin@hospital.com"
 ADMIN_PASSWORD = generate_password_hash("admin123")
 
-# HEALTH TIPS
 health_tips = [
-    {"title": "Stay Hydrated", "content": "Drink at least 8 glasses of water daily."},
-    {"title": "Exercise Daily", "content": "30 minutes of activity keeps you fit."},
-    {"title": "Healthy Diet", "content": "Eat fruits and vegetables regularly."},
-    {"title": "Good Sleep", "content": "Sleep 7-8 hours every night."}
+    {"title": "Stay Hydrated", "content": "Drink enough water daily."},
+    {"title": "Exercise", "content": "30 minutes of activity keeps you healthy."},
+    {"title": "Eat Healthy", "content": "Eat fruits and vegetables."},
 ]
 
-# COMMON AILMENTS 
-common_ailments = {
-    "Flu": {"symptoms": "Fever, cold", "remedy": "Rest & fluids"},
-    "Headache": {"symptoms": "Pain", "remedy": "Hydration & rest"},
-    "Diabetes": {"symptoms": "Fatigue", "remedy": "Consult doctor"}
-}
-
-# HELPER
 def is_logged_in():
-    return "user_email" in session
+    return "patient_email" in session
 
-@app.context_processor
-def inject_now():
-    return {"now": datetime.now()}
-
-# HOME 
 @app.route("/")
 def home():
-    session.clear()  # Auto logout when Home clicked
-    
+    session.clear()
     tips = random.sample(health_tips, min(3, len(health_tips)))
     return render_template("index.html", tips=tips)
 
+@app.route("/about")
+def about():
+    return render_template("about.html")
 
-# REGISTER
-@app.route("/register", methods=["GET", "POST"])
+@app.route("/contact", methods=["GET","POST"])
+def contact():
+    if request.method == "POST":
+        contacts.append(request.form.to_dict())
+        flash("Message sent successfully!")
+    return render_template("contact.html")
+
+@app.route("/register", methods=["GET","POST"])
 def register():
     if request.method == "POST":
-        user = {
+        email = request.form["email"]
+
+        for p in patients:
+            if p["email"] == email:
+                flash("Email already registered")
+                return redirect(url_for("login"))
+
+        patients.append({
             "id": str(uuid.uuid4()),
             "name": request.form["name"],
-            "email": request.form["email"],
+            "email": email,
             "password": generate_password_hash(request.form["password"]),
             "dob": request.form["dob"],
             "blood": request.form["blood"],
             "allergies": request.form["allergies"],
             "diseases": request.form["diseases"]
-        }
-        users.append(user)
-        flash("Registration successful")
+        })
+
+        flash("Registration successful. Login now.")
         return redirect(url_for("login"))
 
     return render_template("register.html")
 
-# LOGIN
-@app.route("/login", methods=["GET", "POST"])
+@app.route("/login", methods=["GET","POST"])
 def login():
+    show_register = False
+
     if request.method == "POST":
         email = request.form["email"]
         password = request.form["password"]
 
-        # Admin login
         if email == ADMIN_EMAIL and check_password_hash(ADMIN_PASSWORD, password):
             session["admin"] = True
             return redirect(url_for("admin_dashboard"))
 
-        # Patient login
-        for u in users:
-            if u["email"] == email:
-                if check_password_hash(u["password"], password):
-                    session["user_email"] = u["email"]
-                    session["user_id"] = u["id"]
+        for p in patients:
+            if p["email"] == email:
+                if check_password_hash(p["password"], password):
+                    session["patient_email"] = p["email"]
+                    session["patient_id"] = p["id"]
                     return redirect(url_for("profile"))
                 else:
-                    flash("Incorrect password")
+                    flash("Wrong password")
                     return redirect(url_for("login"))
 
         flash("User not registered")
-        return render_template("login.html", show_register=True)
+        show_register = True
 
-    return render_template("login.html", show_register=False)
+    return render_template("login.html", show_register=show_register)
 
-# LOGOUT
 @app.route("/logout")
 def logout():
     session.clear()
-    flash("Logged out")
     return redirect(url_for("home"))
 
-# ABOUT 
-@app.route("/about")
-def about():
-    return render_template("about.html")
-
-@app.route("/contact", methods=["GET", "POST"])
-def contact():
-    if request.method == "POST":
-        contacts.append(request.form.to_dict())
-        flash("Message sent successfully!")
-        return redirect(url_for("contact"))
-
-    return render_template("contact.html")
-
-# DOCTORS
 @app.route("/doctors")
 def doctors_page():
     return render_template("doctors.html", doctors=doctors)
 
-# DOCTOR DETAILS 
-@app.route("/doctor/<doctor_id>")
-def doctor_details(doctor_id):
-    doc = next((d for d in doctors if d["id"] == doctor_id), None)
+@app.route("/doctor/<doc_id>")
+def doctor_details(doc_id):
+    doc = next((d for d in doctors if d["id"] == doc_id), None)
     return render_template("doctor_details.html", doctor=doc)
 
-# APPOINTMENTS
 @app.route("/appointments")
 def appointments_page():
     if not is_logged_in():
         return redirect(url_for("login"))
 
-    user_appts = [a for a in appointments if a["user_id"] == session["user_id"]]
-    return render_template("appointments.html", doctors=doctors, appointments=user_appts)
+    my_appts = [a for a in appointments if a["patient_id"] == session["patient_id"]]
+    return render_template("appointments.html", doctors=doctors, appointments=my_appts)
 
-# BOOK APPOINTMENT 
 @app.route("/book-appointment", methods=["POST"])
 def book_appointment():
-    appt = {
+    if not is_logged_in():
+        return redirect(url_for("login"))
+
+    appointments.append({
         "id": str(uuid.uuid4()),
-        "user_id": session["user_id"],
+        "patient_id": session["patient_id"],
+        "patient_email": session["patient_email"],
         "doctor": request.form["doctor"],
         "date": request.form["date"],
         "time": request.form["time"],
-        "status": "Booked"
-    }
-    appointments.append(appt)
+        "status": "Booked",
+        "timestamp": datetime.now()
+    })
+
     flash("Appointment booked successfully")
     return redirect(url_for("appointments_page"))
 
-# CANCEL APPOINTMENT 
-@app.route("/cancel-appointment/<appt_id>")
-def cancel_appointment(appt_id):
+@app.route("/cancel/<appt_id>")
+def cancel(appt_id):
     for a in appointments:
         if a["id"] == appt_id:
             a["status"] = "Cancelled"
     flash("Appointment cancelled")
     return redirect(url_for("appointments_page"))
 
-# HEALTH TIPS
-@app.route("/health-tips")
-def health_tips_page():
-    return render_template("health_tips.html", tips=health_tips, ailments=common_ailments)
-
-# PROFILE
 @app.route("/profile")
 def profile():
-    user = next((u for u in users if u["id"] == session.get("user_id")), None)
-    user_appts = [a for a in appointments if a["user_id"] == session.get("user_id")]
-    return render_template("profile.html", user=user, appointments=user_appts)
+    if not is_logged_in():
+        return redirect(url_for("login"))
 
-# UPDATE PROFILE
-@app.route("/update-profile", methods=["POST"])
-def update_profile():
-    for u in users:
-        if u["id"] == session["user_id"]:
-            u["name"] = request.form["name"]
-            u["blood"] = request.form["blood"]
-            u["allergies"] = request.form["allergies"]
-            u["diseases"] = request.form["diseases"]
-    flash("Profile updated")
-    return redirect(url_for("profile"))
+    patient = next(p for p in patients if p["id"] == session["patient_id"])
+    my_appts = [a for a in appointments if a["patient_id"] == session["patient_id"]]
 
-# ADMIN DASHBOARD
+    return render_template("profile.html", patient=patient, appointments=my_appts)
+
 @app.route("/admin")
 def admin_dashboard():
     if "admin" not in session:
         return redirect(url_for("login"))
 
-    return render_template(
-        "admin_dashboard.html",
-        users=users,
+    return render_template("admin_dashboard.html",
+        patients=patients,
         doctors=doctors,
         appointments=appointments,
         contacts=contacts
     )
 
-# ADD DOCTOR
-@app.route("/add-doctor", methods=["GET", "POST"])
+@app.route("/add-doctor", methods=["GET","POST"])
 def add_doctor():
     if "admin" not in session:
         return redirect(url_for("login"))
 
     if request.method == "POST":
-        doc = {
+        doctors.append({
             "id": str(uuid.uuid4()),
             "name": request.form["name"],
             "specialty": request.form["specialty"],
             "experience": request.form["experience"]
-        }
-        doctors.append(doc)
-        flash("Doctor added")
+        })
+        flash("Doctor added successfully")
         return redirect(url_for("admin_dashboard"))
 
     return render_template("add_doctor.html")
 
-# ERROR HANDLERS
 @app.errorhandler(404)
 def not_found(e):
     return render_template("404.html"), 404
 
 @app.errorhandler(500)
-def server_error(e):
+def error(e):
     return render_template("500.html"), 500
 
-# RUN 
 if __name__ == "__main__":
     app.run(debug=True)

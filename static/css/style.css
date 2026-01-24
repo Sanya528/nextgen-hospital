@@ -1,218 +1,269 @@
-/* GLOBAL RESET */
+/* ================= RESET ================= */
 * {
-    box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+::placeholder {
+  color: #888;
 }
 
 body {
-    margin: 0;
-    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
-    background: #f4f8fc;
-    color: #333;
+  margin: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: #f4f7fb;
+  color: #333;
 }
 
-/* NAVBAR */
+/* ================= NAVBAR ================= */
 .navbar {
-    background: linear-gradient(90deg, #0d6efd, #0a58ca);
-    padding: 14px 28px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+  background: linear-gradient(135deg,#1d6cff,#0077ff);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 28px;
+  height: 72px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.1);
 }
 
-.navbar h2 {
-    color: white;
-    margin: 0;
-    font-size: 20px;
-    font-weight: bold;
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.navbar a {
-    color: white;
-    margin-left: 18px;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
+.logo-img {
+  height: 46px;
+  width: 46px;
+  border-radius: 50%;
+  background: white;
+  padding: 5px;
 }
 
-.navbar a:hover {
-    text-decoration: underline;
+.brand-text {
+  font-size: 20px;
+  font-weight: 600;
+  color: white;
 }
 
-/* MAIN CONTAINER */
+.navbar-right a {
+  color: white;
+  text-decoration: none;
+  margin-left: 18px;
+  font-weight: 500;
+}
+
+.navbar-right a:hover {
+  text-decoration: underline;
+}
+
+/* ================= CONTAINER ================= */
 .container {
-    width: 92%;
-    max-width: 1100px;
-    margin: 35px auto;
+  max-width: 1100px;
+  margin: auto;
+  padding: 30px 20px;
 }
 
-/* CARD UI */
-.card {
-    background: white;
-    border-radius: 14px;
-    padding: 24px;
-    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
-    margin-bottom: 24px;
+/* ================= CARDS ================= */
+.card,
+.section-card,
+.form-card,
+.contact-card {
+  background: white;
+  padding: 26px 28px;
+  border-radius: 16px;
+  margin-bottom: 26px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.08);
 }
 
-/* CENTER */
 .center {
-    text-align: center;
+  text-align: center;
 }
 
-/* SECTION TITLE */
-.section-title {
-    color: #0d6efd;
-    margin-bottom: 12px;
-    font-weight: bold;
+/* ================= TITLES ================= */
+.section-title,
+.page-title {
+  color: #1d6cff;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 18px;
 }
 
-/* ALERT / FLASH */
-.alert {
-    color: #dc3545;
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 15px;
-}
-
-/* FORM CARD */
-.form-card {
-    max-width: 540px;
-    margin: auto;
-}
-
-/* FORM TITLE */
 .form-title {
-    text-align: center;
-    color: #0d6efd;
-    font-size: 22px;
-    font-weight: bold;
-    margin-bottom: 20px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 22px;
 }
 
-/* LABELS */
+/* ================= FORMS ================= */
+.form-card {
+  max-width: 720px;
+  margin: 40px auto;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+}
+
 label {
-    font-size: 14px;
-    font-weight: 600;
-    color: #444;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #333;
 }
 
-/* INPUTS */
-input, select, textarea {
-    width: 100%;
-    padding: 12px 14px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-size: 14px;
-    transition: all 0.2s ease;
-    background: white;
+/* Inputs */
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+  transition: 0.2s ease;
+}
+
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #1d6cff;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(29,108,255,0.12);
 }
 
 textarea {
-    min-height: 120px;
+  min-height: 120px;
+  resize: vertical;
 }
 
-/* INPUT FOCUS */
-input:focus, select:focus, textarea:focus {
-    outline: none;
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 3px rgba(13,110,253,.15);
+/* Two-column grid */
+.form-grid,
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 }
 
-/* GRID FOR TWO COLUMN FORMS */
-.form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
+.contact-grid textarea {
+  grid-column: span 2;
+  min-height: 160px;
 }
 
-/* FORM ACTION BUTTON */
-.form-actions {
-    text-align: center;
-    margin-top: 10px;
+
+/* Form Buttons */
+.form-actions,
+.contact-actions {
+  text-align: center;
+  margin-top: 24px;
 }
 
-/* BUTTONS */
-button {
-    background: #0d6efd;
-    color: white;
-    border: none;
-    padding: 12px 22px;
-    border-radius: 8px;
-    font-weight: bold;
-    font-size: 15px;
-    cursor: pointer;
-    transition: 0.2s ease;
+/* ================= BUTTONS ================= */
+button,
+.btn-primary {
+  background: linear-gradient(135deg, #1d6cff, #0b57d0);
+  color: white;
+  border: none;
+  padding: 12px 34px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: 0.2s ease;
 }
 
-button:hover {
-    background: #0a58ca;
-    transform: scale(1.02);
+button:hover,
+.btn-primary:hover {
+  background: #0b57d0;
+  transform: translateY(-1px);
 }
 
-/* TABLES */
+.btn-danger {
+  background: #e63946;
+}
+
+.btn-danger:hover {
+  background: #c62828;
+}
+
+/* ================= ALERT ================= */
+.alert {
+  background: #e6f0ff;
+  padding: 10px;
+  color: #1d6cff;
+  border-radius: 8px;
+  text-align: center;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+/* ================= TABLES ================= */
 table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 12px;
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
 }
 
 th {
-    background: #0d6efd;
-    color: white;
-    padding: 12px;
-    text-align: left;
-    font-size: 14px;
+  background: #1d6cff;
+  color: white;
+  padding: 12px;
+  text-align: left;
 }
 
 td {
-    padding: 12px;
-    border-bottom: 1px solid #ddd;
-    font-size: 14px;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
 }
 
 tr:hover {
-    background: #f1f5fb;
+  background: #f3f6ff;
 }
 
-/* BADGE */
-.badge {
-    background: #0d6efd;
-    color: white;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 12px;
+/* Admin Tables */
+.admin-table {
+  border-radius: 12px;
+  overflow: hidden;
 }
 
-/* FOOTER */
-.footer {
-    text-align: center;
-    padding: 20px;
-    font-size: 13px;
-    color: #777;
+.admin-table tr:nth-child(even) {
+  background: #f6f9ff;
 }
 
-/* DOCTOR CARDS */
-.doctor-card {
-    border-left: 4px solid #0d6efd;
-    padding: 15px;
-    margin-bottom: 12px;
-    border-radius: 10px;
-    background: #f9fbff;
+/* ================= APPOINTMENTS ================= */
+.appointment-card {
+  max-width: 760px;
+  margin: auto;
 }
 
-/* RESPONSIVE */
+.appointment-table {
+  margin-top: 18px;
+}
+
+/* ================= RESPONSIVE ================= */
 @media (max-width: 768px) {
-    .form-grid {
-        grid-template-columns: 1fr;
-    }
 
-    .navbar {
-        flex-direction: column;
-        align-items: flex-start;
-    }
+  .navbar {
+    flex-direction: column;
+    height: auto;
+    gap: 10px;
+    text-align: center;
+  }
 
-    .navbar div {
-        margin-top: 10px;
-    }
+  .navbar-right {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .form-grid,
+  .contact-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-card {
+    padding: 24px;
+  }
 }
