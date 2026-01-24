@@ -7,17 +7,17 @@ import random
 app = Flask(__name__)
 app.secret_key = "next_gen_secret"
 
-# ---------------- LOCAL DATABASE ----------------
+# LOCAL DATABASE
 users = []           # Patients
 doctors = []         # Doctors added by admin
 appointments = []    # Bookings
 contacts = []        # Contact messages
 
-# ---------------- ADMIN LOGIN ----------------
+# ADMIN LOGIN
 ADMIN_EMAIL = "admin@hospital.com"
 ADMIN_PASSWORD = generate_password_hash("admin123")
 
-# ---------------- HEALTH TIPS ----------------
+# HEALTH TIPS
 health_tips = [
     {"title": "Stay Hydrated", "content": "Drink at least 8 glasses of water daily."},
     {"title": "Exercise Daily", "content": "30 minutes of activity keeps you fit."},
@@ -25,14 +25,14 @@ health_tips = [
     {"title": "Good Sleep", "content": "Sleep 7-8 hours every night."}
 ]
 
-# ---------------- COMMON AILMENTS ----------------
+# COMMON AILMENTS 
 common_ailments = {
     "Flu": {"symptoms": "Fever, cold", "remedy": "Rest & fluids"},
     "Headache": {"symptoms": "Pain", "remedy": "Hydration & rest"},
     "Diabetes": {"symptoms": "Fatigue", "remedy": "Consult doctor"}
 }
 
-# ---------------- HELPER ----------------
+# HELPER
 def is_logged_in():
     return "user_email" in session
 
@@ -40,7 +40,7 @@ def is_logged_in():
 def inject_now():
     return {"now": datetime.now()}
 
-# ---------------- HOME ----------------
+# HOME 
 @app.route("/")
 def home():
     session.clear()  # Auto logout when Home clicked
@@ -49,7 +49,7 @@ def home():
     return render_template("index.html", tips=tips)
 
 
-# ---------------- REGISTER ----------------
+# REGISTER
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
@@ -69,7 +69,7 @@ def register():
 
     return render_template("register.html")
 
-# ---------------- LOGIN ----------------
+# LOGIN
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -97,14 +97,14 @@ def login():
 
     return render_template("login.html", show_register=False)
 
-# ---------------- LOGOUT ----------------
+# LOGOUT
 @app.route("/logout")
 def logout():
     session.clear()
     flash("Logged out")
     return redirect(url_for("home"))
 
-# ---------------- ABOUT ----------------
+# ABOUT 
 @app.route("/about")
 def about():
     return render_template("about.html")
@@ -118,18 +118,18 @@ def contact():
 
     return render_template("contact.html")
 
-# ---------------- DOCTORS ----------------
+# DOCTORS
 @app.route("/doctors")
 def doctors_page():
     return render_template("doctors.html", doctors=doctors)
 
-# ---------------- DOCTOR DETAILS ----------------
+# DOCTOR DETAILS 
 @app.route("/doctor/<doctor_id>")
 def doctor_details(doctor_id):
     doc = next((d for d in doctors if d["id"] == doctor_id), None)
     return render_template("doctor_details.html", doctor=doc)
 
-# ---------------- APPOINTMENTS ----------------
+# APPOINTMENTS
 @app.route("/appointments")
 def appointments_page():
     if not is_logged_in():
@@ -138,7 +138,7 @@ def appointments_page():
     user_appts = [a for a in appointments if a["user_id"] == session["user_id"]]
     return render_template("appointments.html", doctors=doctors, appointments=user_appts)
 
-# ---------------- BOOK APPOINTMENT ----------------
+# BOOK APPOINTMENT 
 @app.route("/book-appointment", methods=["POST"])
 def book_appointment():
     appt = {
@@ -153,7 +153,7 @@ def book_appointment():
     flash("Appointment booked successfully")
     return redirect(url_for("appointments_page"))
 
-# ---------------- CANCEL APPOINTMENT ----------------
+# CANCEL APPOINTMENT 
 @app.route("/cancel-appointment/<appt_id>")
 def cancel_appointment(appt_id):
     for a in appointments:
@@ -162,19 +162,19 @@ def cancel_appointment(appt_id):
     flash("Appointment cancelled")
     return redirect(url_for("appointments_page"))
 
-# ---------------- HEALTH TIPS ----------------
+# HEALTH TIPS
 @app.route("/health-tips")
 def health_tips_page():
     return render_template("health_tips.html", tips=health_tips, ailments=common_ailments)
 
-# ---------------- PROFILE ----------------
+# PROFILE
 @app.route("/profile")
 def profile():
     user = next((u for u in users if u["id"] == session.get("user_id")), None)
     user_appts = [a for a in appointments if a["user_id"] == session.get("user_id")]
     return render_template("profile.html", user=user, appointments=user_appts)
 
-# ---------------- UPDATE PROFILE ----------------
+# UPDATE PROFILE
 @app.route("/update-profile", methods=["POST"])
 def update_profile():
     for u in users:
@@ -186,7 +186,7 @@ def update_profile():
     flash("Profile updated")
     return redirect(url_for("profile"))
 
-# ---------------- ADMIN DASHBOARD ----------------
+# ADMIN DASHBOARD
 @app.route("/admin")
 def admin_dashboard():
     if "admin" not in session:
@@ -200,7 +200,7 @@ def admin_dashboard():
         contacts=contacts
     )
 
-# ---------------- ADD DOCTOR ----------------
+# ADD DOCTOR
 @app.route("/add-doctor", methods=["GET", "POST"])
 def add_doctor():
     if "admin" not in session:
@@ -219,7 +219,7 @@ def add_doctor():
 
     return render_template("add_doctor.html")
 
-# ---------------- ERROR HANDLERS ----------------
+# ERROR HANDLERS
 @app.errorhandler(404)
 def not_found(e):
     return render_template("404.html"), 404
@@ -228,6 +228,6 @@ def not_found(e):
 def server_error(e):
     return render_template("500.html"), 500
 
-# ---------------- RUN ----------------
+# RUN 
 if __name__ == "__main__":
     app.run(debug=True)
