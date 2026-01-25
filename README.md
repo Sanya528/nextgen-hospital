@@ -1,34 +1,34 @@
 ### Project Structure
 
-NEXTGEN_HOSPITAL/
-│
-├── static/
-│   ├── css/
-│   ├── images/
-│   └── js/
-│
-├── templates/
-│   ├── 404.html
-│   ├── 500.html
-│   ├── about.html
-│   ├── add_doctor.html
-│   ├── admin_dashboard.html
-│   ├── appointments.html
-│   ├── base.html
-│   ├── contact.html
-│   ├── doctor_details.html
-│   ├── doctors.html
-│   ├── health_tips.html
-│   ├── index.html
-│   ├── login.html
-│   ├── profile.html
-│   └── register.html
-│
-├── app.py              # Local version (in-memory storage)
-├── app_aws.py          # AWS DynamoDB version
-├── requirements.txt
-├── requirements_aws.txt
-└── README.md
+NEXTGEN_HOSPITAL/<br/>
+│<br/>
+├── static/<br/>
+│   ├── css/<br/>
+│   ├── images/<br/>
+│   └── js/<br/>
+│<br/>
+├── templates/<br/>
+│   ├── 404.html<br/>
+│   ├── 500.html<br/>
+│   ├── about.html<br/>
+│   ├── add_doctor.html<br/>
+│   ├── admin_dashboard.html<br/>
+│   ├── appointments.html<br/>
+│   ├── base.html<br/>
+│   ├── contact.html<br/>
+│   ├── doctor_details.html<br/>
+│   ├── doctors.html<br/>
+│   ├── health_tips.html<br/>
+│   ├── index.html<br/>
+│   ├── login.html<br/>
+│   ├── profile.html<br/>
+│   └── register.html<br/>
+│<br/>
+├── app.py              # Local version<br/>
+├── app_aws.py          # AWS version<br/>
+├── requirements.txt<br/>
+├── requirements_aws.txt<br/>
+└── README.md<br/>
 
 # Features
 
