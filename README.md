@@ -98,6 +98,8 @@ Amazon SNS for email or system alerts</br>
 AWS IAM for secure permissions and controlled AWS resource access</br>
 Password hashing using Werkzeug Security</br>
 
+--- 
+
 # Tech Stack
 
 Language: Python 3.x</br>
