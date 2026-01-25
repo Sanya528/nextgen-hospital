@@ -2,15 +2,27 @@
 {% block content %}
 
 <div class="card">
-<h2 class="section-title">Our Doctors</h2>
+  <h2 class="section-title">Our Medical Specialists</h2>
 
-{% for d in doctors %}
-<div class="card">
-<b>{{ d.name }}</b> — {{ d.specialty }} <br>
-<a href="/doctor/{{ d.id }}"><button>View Profile</button></a>
-</div>
-{% endfor %}
+  <div class="doctor-grid">
+    
+    {% for doctor in doctors %}
+    <div class="doctor-card">
 
+      <img src="{{ doctor.image }}" class="doctor-img">
+
+      <h3 class="doctor-name">
+        <a href="/doctor/{{ loop.index0 }}">{{ doctor.name }}</a>
+      </h3>
+
+      <p class="doctor-specialty">{{ doctor.specialty }}</p>
+
+      <p class="doctor-exp">{{ doctor.experience }} years experience</p>
+
+    </div>
+    {% endfor %}
+
+  </div>
 </div>
 
 {% endblock %}

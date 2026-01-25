@@ -3,38 +3,27 @@
 
 <div class="contact-card">
 
-<h2 class="page-title">Contact Us</h2>
+  <h2 class="page-title">Contact Us</h2>
 
-{% for msg in get_flashed_messages() %}
-<p class="alert">{{ msg }}</p>
-{% endfor %}
+  {% for msg in get_flashed_messages() %}
+    <p class="alert">{{ msg }}</p>
+  {% endfor %}
 
-<form method="post">
+  <form method="post" class="contact-form">
 
-<div class="contact-grid">
-
-  <div class="form-row">
     <label>Your Name</label>
-    <input name="name" placeholder="Enter your name" required>
-  </div>
+    <input type="text" name="name" placeholder="Enter your name" required>
 
-  <div class="form-row">
     <label>Your Email</label>
     <input type="email" name="email" placeholder="Enter your email" required>
-  </div>
 
-  <div class="form-row">
     <label>Your Message</label>
     <textarea name="message" placeholder="Type your message here..." required></textarea>
-  </div>
 
-</div>
+    <button type="submit" class="btn-primary">Send Message</button>
 
-<div class="contact-actions">
-<button class="btn-primary">Send Message</button>
-</div>
+  </form>
 
-</form>
 </div>
 
 {% endblock %}

@@ -1,22 +1,132 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="card center">
-<img src="{{ url_for('static', filename='images/logo.png') }}" width="90">
-<h1 class="section-title">Next-Gen Hospital Platform</h1>
-<p>Secure Healthcare • Online Appointments • Digital Records</p>
+<div class="card hero-banner" id="banner">
 
-<a href="/login"><button>Login</button></a>
-<a href="/register"><button style="background:gray;">Register</button></a>
+    <div class="hero-content">
+
+        <h1 class="section-title">Next-Gen Hospital Platform</h1>
+        <p>Secure Healthcare • Online Appointments • Digital Records</p>
+
+        <div class="hero-buttons">
+            <a href="/login"><button>Login</button></a>
+            <a href="/register"><button class="btn-secondary">Register</button></a>
+        </div>
+    </div>
+
+    <img src="{{ url_for('static', filename='images/banner.png') }}" class="hero-bottom-image">
+
+</div>
+
+<div class="card info-section">
+
+    <div class="info-image">
+        <img src="{{ url_for('static', filename='images/consult1.png') }}">
+    </div>
+
+    <div class="info-text">
+        <h2>Excellence in Patient Care</h2>
+
+        <p>
+            We provide world-class medical services with compassion, innovation, and excellence.
+            Our experienced doctors ensure personalized and trusted healthcare for every patient.
+        </p>
+
+        <a href="/about">
+            <button class="btn-primary">About Us</button>
+        </a>
+    </div>
+</div>
+
+<div class="card services-section">
+  <h2 class="services-title">Health and Wellness Services</h2>
+
+  <div class="services-wrapper">
+    
+    <button class="scroll-btn left" onclick="scrollServices(-1)">‹</button>
+
+
+    <div class="services-slider" id="servicesSlider">
+
+      <div class="service-card yellow">
+        <h3>Emergency Care</h3>
+        <p>24/7 emergency medical support and rapid response.</p>
+      </div>
+
+      <div class="service-card blue">
+        <h3>Cardiology</h3>
+        <p>Advanced heart care and cardiovascular treatment.</p>
+      </div>
+
+      <div class="service-card pink">
+        <h3>Pediatrics</h3>
+        <p>Specialized healthcare services for children.</p>
+      </div>
+
+        <div class="service-card yellow">
+        <h3>Neurology</h3>
+        <p>Advanced brain and nervous system care with expert neurologists.</p>
+        </div>
+
+        <div class="service-card blue">
+        <h3>Orthopedics</h3>
+        <p>Bone, joint, and spine treatments with modern surgical care.</p>
+        </div>
+
+        <div class="service-card pink">
+        <h3>Dermatology</h3>
+        <p>Complete skin, hair, and cosmetic dermatology services.</p>
+        </div>
+
+        <div class="service-card yellow">
+        <h3>Psychiatry</h3>
+        <p>Mental health care with therapy, counseling, and wellness programs.</p>
+        </div>
+
+        <div class="service-card blue">
+        <h3>Nephrology</h3>
+        <p>Kidney care, dialysis services, and renal treatments.</p>
+        </div>
+
+        <div class="service-card pink">
+        <h3>Gastroenterology</h3>
+        <p>Digestive system care with modern diagnostics.</p>
+        </div>
+
+        <div class="service-card yellow">
+        <h3>ENT</h3>
+        <p>Ear, Nose, and Throat specialist services.</p>
+        </div>
+
+        <div class="service-card blue">
+        <h3>Physiotherapy</h3>
+        <p>Rehabilitation and physical recovery programs.</p>
+        </div>
+
+        <div class="service-card pink">
+        <h3>Urology</h3>
+        <p>Urinary tract and male reproductive health care.</p>
+        </div>
+
+    </div>
+
+    <button class="scroll-btn right" onclick="scrollServices(1)">›</button>
+
+  </div>
 </div>
 
 <div class="card">
-<h3 class="section-title">Health Tips</h3>
-<ul>
-{% for t in tips %}
-<li><b>{{t.title}}</b> — {{t.content}}</li>
-{% endfor %}
-</ul>
+    <h3 class="section-title">Health Tips</h3>
+
+    <div class="tips-grid">
+        {% for t in tips %}
+        <div class="tip-card">
+            <h4>{{ t.title }}</h4>
+            <p>{{ t.content }}</p>
+        </div>
+        {% endfor %}
+    </div>
 </div>
+
 
 {% endblock %}

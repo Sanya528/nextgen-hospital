@@ -1,25 +1,43 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="card form-card">
-<h2 class="form-title">Add Doctor</h2>
+<div class="card doctor-form-card">
 
-<form method="post">
+  <h2 class="section-title">
+    {{ "Edit Doctor" if edit else "Add New Doctor" }}
+  </h2>
 
-<label>Doctor Name</label>
-<input name="name" placeholder="Doctor full name" required>
+  <form method="post" class="doctor-form">
 
-<label>Specialty</label>
-<input name="specialty" placeholder="Department / Specialty" required>
+    <div class="form-group">
+      <label>Doctor Name</label>
+      <input type="text" name="name" placeholder="Enter doctor name"
+             value="{{ doctor.name if edit else '' }}" required>
+    </div>
 
-<label>Experience (Years)</label>
-<input name="experience" type="number" placeholder="Years of experience" required>
+    <div class="form-group">
+      <label>Specialty</label>
+      <input type="text" name="specialty" placeholder="Enter specialty"
+             value="{{ doctor.specialty if edit else '' }}" required>
+    </div>
 
-<div class="form-actions">
-<button>Add Doctor</button>
-</div>
+    <div class="form-group">
+      <label>Experience (Years)</label>
+      <input type="number" name="experience" placeholder="Years of experience"
+             value="{{ doctor.experience if edit else '' }}" required>
+    </div>
 
-</form>
+    <div class="form-group">
+      <label>Doctor Image Path</label>
+      <input type="text" name="image" placeholder="/static/images/doctors/Dr. Name.jpg"
+             value="{{ doctor.image if edit else '' }}" required>
+    </div>
+
+    <button class="btn-primary full-btn">
+      {{ "Update Doctor" if edit else "Add Doctor" }}
+    </button>
+
+  </form>
 </div>
 
 {% endblock %}

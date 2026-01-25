@@ -7,6 +7,8 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
 </head>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
 <body>
 
 <header class="navbar">
@@ -40,6 +42,18 @@
 <main class="container">
   {% block content %}{% endblock %}
 </main>
+
+{% if request.endpoint != 'contact' %}
+<footer class="site-footer">
+  <div class="footer-inner">
+    <p>© 2026 Next-Gen Hospital Platform — Smart Healthcare for Everyone</p>
+
+    <a href="/contact">
+      <button class="footer-btn">Contact Us</button>
+    </a>
+  </div>
+</footer>
+{% endif %}
 
 </body>
 </html>

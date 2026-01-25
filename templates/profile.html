@@ -1,16 +1,73 @@
 {% extends "base.html" %}
 {% block content %}
 
+<!-- PROFILE INFO -->
 <div class="card">
-<h2 class="section-title">My Profile</h2>
+  <h2>My Profile</h2>
 
-<p><b>Name:</b> {{ user.name }}</p>
-<p><b>Email:</b> {{ user.email }}</p>
-<p><b>DOB:</b> {{ user.dob }}</p>
-<p><b>Blood Group:</b> {{ user.blood }}</p>
-<p><b>Allergies:</b> {{ user.allergies }}</p>
-<p><b>Diseases:</b> {{ user.diseases }}</p>
+  <p><b>Name:</b> {{ patient.name }}</p>
+  <p><b>Email:</b> {{ patient.email }}</p>
+  <p><b>DOB:</b> {{ patient.dob }}</p>
+  <p><b>Blood Group:</b> {{ patient.blood }}</p>
+  <p><b>Allergies:</b> {{ patient.allergies }}</p>
+  <p><b>Diseases:</b> {{ patient.diseases }}</p>
+</div>
 
+<!-- BOOK APPOINTMENT -->
+<div class="card">
+  <h3>Book an Appointment</h3>
+
+  <form method="post" class="appointment-form">
+
+    <label>Select Doctor</label>
+    <select name="doctor" required>
+      {% for d in doctors %}
+      <option value="{{ d.name }}">{{ d.name }} — {{ d.specialty }}</option>
+      {% endfor %}
+    </select>
+
+    <label>Date</label>
+    <input type="date" name="date" required>
+
+    <label>Time</label>
+    <input type="time" name="time" required>
+
+    <button class="btn-primary">Book Appointment</button>
+
+  </form>
+</div>
+
+<!-- APPOINTMENTS LIST -->
+<div class="card">
+  <h3>My Appointments</h3>
+
+  {% if appointments %}
+    <table class="admin-table">
+      <tr>
+        <th>Doctor</th>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+
+      {% for a in appointments %}
+      <tr>
+        <td>{{ a.doctor }}</td>
+        <td>{{ a.date }}</td>
+        <td>{{ a.time }}</td>
+        <td>{{ a.status }}</td>
+        <td>
+          {% if a.status != "Cancelled" %}
+          <a href="/cancel/{{ a.id }}">Cancel</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p>No appointments booked yet.</p>
+  {% endif %}
 </div>
 
 {% endblock %}

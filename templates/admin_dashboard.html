@@ -1,59 +1,110 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2 class="page-title">Admin Dashboard</h2>
-
-<div class="section-card">
-<h3>Appointments</h3>
-
-<table class="admin-table">
-
-<tr>
-<th>Patient</th>
-<th>Doctor</th>
-<th>Date</th>
-<th>Time</th>
-<th>Status</th>
-</tr>
-
-{% for a in appointments %}
-<tr>
-<td>{{ a.patient_email }}</td>
-<td>{{ a.doctor }}</td>
-<td>{{ a.date }}</td>
-<td>{{ a.time }}</td>
-<td>{{ a.status }}</td>
-</tr>
-{% endfor %}
-
-</table>
+<div class="card">
+  <h2 class="section-title">Admin Dashboard</h2>
 </div>
 
-<div class="section-card">
-<h3>Registered Patients</h3>
+<!-- ===================== DOCTORS ===================== -->
+<div class="card">
+  <h3>Manage Doctors</h3>
 
-<table class="admin-table">
-<tr>
-<th>Name</th>
-<th>Email</th>
-<th>Blood Group</th>
-</tr>
+  <a href="/admin/add-doctor">
+    <button class="btn-primary">Add Doctor</button>
+  </a>
 
-{% for p in patients %}
-<tr>
-<td>{{ p.name }}</td>
-<td>{{ p.email }}</td>
-<td>{{ p.blood }}</td>
-</tr>
-{% endfor %}
+  <table class="admin-table">
+    <tr>
+      <th>Image</th>
+      <th>Name</th>
+      <th>Department</th>
+      <th>Experience</th>
+      <th>Actions</th>
+    </tr>
 
-</table>
+    {% for d in doctors %}
+    <tr>
+      <td>
+        <img src="{{ d.image }}" width="60" style="border-radius: 50%;">
+      </td>
+      <td>{{ d.name }}</td>
+      <td>{{ d.specialty }}</td>
+      <td>{{ d.experience }} yrs</td>
+      <td>
+        <a href="/admin/edit-doctor/{{ loop.index0 }}">Edit</a> |
+        <a href="/admin/delete-doctor/{{ loop.index0 }}" 
+           onclick="return confirm('Delete this doctor?')">Delete</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
 </div>
 
-<div class="section-card">
-<a href="/add-doctor">
-<button class="btn-primary">Add Doctor</button>
-</a>
+<!-- ===================== PATIENTS ===================== -->
+<div class="card">
+  <h3>Registered Patients</h3>
+
+  <table class="admin-table">
+    <tr>
+      <th>Name</th>
+      <th>Email</th>
+    </tr>
+
+    {% for p in patients %}
+    <tr>
+      <td>{{ p.name }}</td>
+      <td>{{ p.email }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+<!-- ===================== APPOINTMENTS ===================== -->
+<div class="card">
+  <h3>Appointments</h3>
+
+  <table class="admin-table">
+    <tr>
+      <th>Patient Email</th>
+      <th>Doctor</th>
+      <th>Date</th>
+      <th>Time</th>
+      <th>Status</th>
+    </tr>
+
+    {% for a in appointments %}
+    <tr>
+      <td>{{ a.patient_email }}</td>
+      <td>{{ a.doctor }}</td>
+      <td>{{ a.date }}</td>
+      <td>{{ a.time }}</td>
+      <td>{{ a.status }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+<!-- ===================== CONTACT MESSAGES ===================== -->
+<div class="card">
+  <h3>Contact Messages</h3>
+
+  <table class="admin-table">
+    <tr>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Message</th>
+      <th>Time</th>
+    </tr>
+
+    {% for c in contacts %}
+    <tr>
+      <td>{{ c.name }}</td>
+      <td>{{ c.email }}</td>
+      <td>{{ c.message }}</td>
+      <td>{{ c.timestamp.strftime('%d %b %Y %H:%M') if c.timestamp else '' }}</td>
+    </tr>
+    {% endfor %}
+  </table>
 </div>
 
 {% endblock %}
