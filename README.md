@@ -1,4 +1,4 @@
-### Project Structure
+# Project Structure
 
 NEXTGEN_HOSPITAL/<br/>
 │<br/>
@@ -29,6 +29,8 @@ NEXTGEN_HOSPITAL/<br/>
 ├── requirements.txt<br/>
 ├── requirements_aws.txt<br/>
 └── README.md<br/>
+
+---
 
 # Features
 
@@ -63,3 +65,44 @@ Users can send inquiries via contact form
 ## Health Tips
 
 Random daily health tips displayed on homepage
+
+---
+
+# Admin Login Credentials (Default)
+
+Email: admin@hospital.com</br>
+Password: admin123
+
+---
+
+# Architecture</br>
+The NEXTGEN Hospital application is built using a cloud-ready, AWS-hosted architecture, designed for scalability, persistence, and secure access.</br>
+## Frontend</br>
+HTML, CSS, JavaScript</br>
+Rendered using Flask templates</br>
+## Backend</br>
+Python Flask web application</br>
+Handles authentication, appointments, doctor management, and admin operations</br>
+## Database</br>
+Amazon DynamoDB (NoSQL)</br>
+Stores persistent data for:</br>
+Patients</br>
+Doctors</br>
+Appointments</br>
+Contact Messages</br>
+## Hosting</br>
+Amazon EC2 runs the Flask application server</br>
+## Notifications (Optional / Extendable)</br>
+Amazon SNS for email or system alerts</br>
+## Security</br>
+AWS IAM for secure permissions and controlled AWS resource access</br>
+Password hashing using Werkzeug Security</br>
+
+# Tech Stack
+
+Language: Python 3.x</br>
+Web Framework: Flask</br>
+Cloud Provider: Amazon Web Services (AWS)</br>
+AWS Services Used: EC2, DynamoDB, SNS, IAM</br>
+Frontend: HTML5, CSS3, JavaScript</br>
+Security: Werkzeug Password Hashing</br>
