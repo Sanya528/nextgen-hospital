@@ -6,41 +6,84 @@ from datetime import datetime
 app = Flask(__name__)
 app.secret_key = "nextgen_secret"
 
+# ========================
+# GLOBAL STORAGE (IN-MEMORY)
+# ========================
 patients = []
-doctors = []
 appointments = []
 contacts = []
 
 ADMIN_EMAIL = "admin@hospital.com"
 ADMIN_PASSWORD = generate_password_hash("admin123")
 
-health_tips = [
-    {"title": "Stay Hydrated", "content": "Drink enough water daily."},
-    {"title": "Exercise", "content": "30 minutes of activity keeps you healthy."},
-    {"title": "Eat Healthy", "content": "Eat fruits and vegetables."},
+# ========================
+# DOCTORS LIST
+# ========================
+doctors_list = [
+    {"name": "Dr. Aditya Joshi", "specialty": "General Medicine", "experience": 18, "image": "/static/images/doctors/Dr. Aditya Joshi.jpg"},
+    {"name": "Dr. Ananya Sharma", "specialty": "Cardiology", "experience": 12, "image": "/static/images/doctors/Dr. Ananya Sharma.jpg"},
+    {"name": "Dr. Arjun Verma", "specialty": "Orthopedics", "experience": 15, "image": "/static/images/doctors/Dr. Arjun Verma.jpg"},
+    {"name": "Dr. Kavita Rao", "specialty": "Dermatology", "experience": 7, "image": "/static/images/doctors/Dr. Kavita Rao.jpg"},
+    {"name": "Dr. Meera Kulkarni", "specialty": "Gynecology", "experience": 11, "image": "/static/images/doctors/Dr. Meera Kulkarni.jpg"},
+    {"name": "Dr. Neha Gupta", "specialty": "Psychiatry", "experience": 6, "image": "/static/images/doctors/Dr. Neha Gupta.jpg"},
+    {"name": "Dr. Priya Nair", "specialty": "Pediatrics", "experience": 8, "image": "/static/images/doctors/Dr. Priya Nair.jpg"},
+    {"name": "Dr. Rahul Mehta", "specialty": "Neurology", "experience": 10, "image": "/static/images/doctors/Dr. Rahul Mehta.jpg"},
+    {"name": "Dr. Rohit Khanna", "specialty": "ENT", "experience": 13, "image": "/static/images/doctors/Dr. Rohit Khanna.jpg"},
+    {"name": "Dr. Sanjay Iyer", "specialty": "Gastroenterology", "experience": 14, "image": "/static/images/doctors/Dr. Sanjay Iyer.jpg"},
+    {"name": "Dr. Vikram Patel", "specialty": "Urology", "experience": 9, "image": "/static/images/doctors/Dr. Vikram Patel.jpg"}
 ]
 
+# ========================
+# HEALTH TIPS
+# ========================
+health_tips = [
+    {"title": "Stay Hydrated", "content": "Drink at least 7–8 glasses of water daily."},
+    {"title": "Eat Balanced Meals", "content": "Include fruits, vegetables, and whole grains."},
+    {"title": "Exercise Regularly", "content": "At least 30 minutes of activity daily."},
+    {"title": "Get Enough Sleep", "content": "Aim for 7–9 hours of sleep."},
+    {"title": "Manage Stress", "content": "Practice meditation or relaxation."},
+    {"title": "Limit Junk Food", "content": "Avoid excess sugar and processed foods."},
+    {"title": "Maintain Hygiene", "content": "Wash hands regularly to prevent infections."},
+    {"title": "Regular Checkups", "content": "Early detection saves lives."},
+]
+
+# ========================
+# AUTH HELPERS
+# ========================
 def is_logged_in():
     return "patient_email" in session
 
+# ========================
+# ROUTES
+# ========================
 @app.route("/")
 def home():
-    session.clear()
-    tips = random.sample(health_tips, min(3, len(health_tips)))
+    tips = random.sample(health_tips, min(4, len(health_tips)))
     return render_template("index.html", tips=tips)
 
 @app.route("/about")
 def about():
     return render_template("about.html")
 
-@app.route("/contact", methods=["GET","POST"])
+# ========================
+# CONTACT FORM
+# ========================
+@app.route("/contact", methods=["GET", "POST"])
 def contact():
     if request.method == "POST":
-        contacts.append(request.form.to_dict())
+        contacts.append({
+            "name": request.form["name"],
+            "email": request.form["email"],
+            "message": request.form["message"],
+            "timestamp": datetime.now()
+        })
         flash("Message sent successfully!")
     return render_template("contact.html")
 
-@app.route("/register", methods=["GET","POST"])
+# ========================
+# REGISTER
+# ========================
+@app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
         email = request.form["email"]
@@ -66,7 +109,10 @@ def register():
 
     return render_template("register.html")
 
-@app.route("/login", methods=["GET","POST"])
+# ========================
+# LOGIN
+# ========================
+@app.route("/login", methods=["GET", "POST"])
 def login():
     show_register = False
 
@@ -74,46 +120,52 @@ def login():
         email = request.form["email"]
         password = request.form["password"]
 
+        # Admin Login
         if email == ADMIN_EMAIL and check_password_hash(ADMIN_PASSWORD, password):
             session["admin"] = True
             return redirect(url_for("admin_dashboard"))
 
+        # Patient Login
         for p in patients:
-            if p["email"] == email:
-                if check_password_hash(p["password"], password):
-                    session["patient_email"] = p["email"]
-                    session["patient_id"] = p["id"]
-                    return redirect(url_for("profile"))
-                else:
-                    flash("Wrong password")
-                    return redirect(url_for("login"))
+            if p["email"] == email and check_password_hash(p["password"], password):
+                session["patient_email"] = p["email"]
+                session["patient_id"] = p["id"]
+                return redirect(url_for("profile"))
 
-        flash("User not registered")
+        flash("Invalid credentials")
         show_register = True
 
     return render_template("login.html", show_register=show_register)
 
+# ========================
+# LOGOUT
+# ========================
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect(url_for("home"))
 
+# ========================
+# DOCTORS
+# ========================
 @app.route("/doctors")
-def doctors_page():
-    return render_template("doctors.html", doctors=doctors)
+def doctors():
+    return render_template("doctors.html", doctors=doctors_list)
 
-@app.route("/doctor/<doc_id>")
-def doctor_details(doc_id):
-    doc = next((d for d in doctors if d["id"] == doc_id), None)
-    return render_template("doctor_details.html", doctor=doc)
+@app.route("/doctor/<int:index>")
+def doctor_details(index):
+    return render_template("doctor_details.html", doctor=doctors_list[index])
 
+# ========================
+# APPOINTMENTS
+# ========================
 @app.route("/appointments")
 def appointments_page():
     if not is_logged_in():
         return redirect(url_for("login"))
 
     my_appts = [a for a in appointments if a["patient_id"] == session["patient_id"]]
-    return render_template("appointments.html", doctors=doctors, appointments=my_appts)
+    return render_template("appointments.html", doctors=doctors_list, appointments=my_appts)
 
 @app.route("/book-appointment", methods=["POST"])
 def book_appointment():
@@ -139,48 +191,117 @@ def cancel(appt_id):
     for a in appointments:
         if a["id"] == appt_id:
             a["status"] = "Cancelled"
+
     flash("Appointment cancelled")
     return redirect(url_for("appointments_page"))
 
-@app.route("/profile")
+# ========================
+# PROFILE
+# ========================
+@app.route("/profile", methods=["GET", "POST"])
 def profile():
     if not is_logged_in():
         return redirect(url_for("login"))
 
-    patient = next(p for p in patients if p["id"] == session["patient_id"])
-    my_appts = [a for a in appointments if a["patient_id"] == session["patient_id"]]
+    patient_id = session.get("patient_id")
 
-    return render_template("profile.html", patient=patient, appointments=my_appts)
+    # Safely find patient
+    patient = next((p for p in patients if p["id"] == patient_id), None)
 
-@app.route("/admin")
+    # If patient missing, logout safely
+    if patient is None:
+        flash("Session expired. Please login again.")
+        session.clear()
+        return redirect(url_for("login"))
+
+    my_appts = [a for a in appointments if a["patient_id"] == patient_id]
+
+    # Handle appointment booking
+    if request.method == "POST":
+        appointments.append({
+            "id": str(uuid.uuid4()),
+            "patient_id": patient_id,
+            "patient_email": session["patient_email"],
+            "doctor": request.form["doctor"],
+            "date": request.form["date"],
+            "time": request.form["time"],
+            "status": "Booked",
+            "timestamp": datetime.now()
+        })
+        flash("Appointment booked successfully!")
+        return redirect(url_for("profile"))
+
+    return render_template(
+        "profile.html",
+        patient=patient,
+        appointments=my_appts,
+        doctors=doctors_list
+    )
+
+# ========================
+# ADMIN DASHBOARD
+# ========================
+@app.route("/admin/dashboard")
 def admin_dashboard():
     if "admin" not in session:
         return redirect(url_for("login"))
 
-    return render_template("admin_dashboard.html",
+    return render_template(
+        "admin_dashboard.html",
+        doctors=doctors_list,
         patients=patients,
-        doctors=doctors,
         appointments=appointments,
         contacts=contacts
     )
 
-@app.route("/add-doctor", methods=["GET","POST"])
+# ========================
+# ADMIN CRUD DOCTORS
+# ========================
+@app.route("/admin/add-doctor", methods=["GET", "POST"])
 def add_doctor():
     if "admin" not in session:
         return redirect(url_for("login"))
 
     if request.method == "POST":
-        doctors.append({
-            "id": str(uuid.uuid4()),
+        doctors_list.append({
             "name": request.form["name"],
             "specialty": request.form["specialty"],
-            "experience": request.form["experience"]
+            "experience": request.form["experience"],
+            "image": request.form["image"]
         })
-        flash("Doctor added successfully")
         return redirect(url_for("admin_dashboard"))
 
     return render_template("add_doctor.html")
 
+@app.route("/admin/edit-doctor/<int:index>", methods=["GET", "POST"])
+def edit_doctor(index):
+    if "admin" not in session:
+        return redirect(url_for("login"))
+
+    doctor = doctors_list[index]
+
+    if request.method == "POST":
+        doctor.update({
+            "name": request.form["name"],
+            "specialty": request.form["specialty"],
+            "experience": request.form["experience"],
+            "image": request.form["image"]
+        })
+        return redirect(url_for("admin_dashboard"))
+
+    return render_template("add_doctor.html", doctor=doctor, edit=True)
+
+@app.route("/admin/delete-doctor/<int:index>")
+def delete_doctor(index):
+    if "admin" not in session:
+        return redirect(url_for("login"))
+
+    doctors_list.pop(index)
+    return redirect(url_for("admin_dashboard"))
+
+# ========================
+# ERROR HANDLERS
+# ========================
 @app.errorhandler(404)
 def not_found(e):
     return render_template("404.html"), 404
