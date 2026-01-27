@@ -1,4 +1,4 @@
-Flask
+Flask==2.3.3
 boto3
 botocore
-werkzeug
+Werkzeug==2.3.7
