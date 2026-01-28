@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 
+{% if doctor %}
 <div class="card doctor-profile">
 
   <img src="{{ doctor.image }}" style="width:250px;border-radius:16px">
@@ -15,5 +16,10 @@
   </a>
 
 </div>
+{% else %}
+<div class="card center">
+  <h2>Doctor Not Found</h2>
+</div>
+{% endif %}
 
 {% endblock %}
