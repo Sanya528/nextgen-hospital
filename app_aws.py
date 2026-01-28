@@ -8,7 +8,7 @@ from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 
 app = Flask(__name__)
-app.secret_key = "my_flask_project_secret_123"
+app.secret_key = "nextgen_secret"
 
 # AWS Configuration 
 REGION = 'us-east-1' 
@@ -313,4 +313,5 @@ def admin_logout():
 # ============================
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
+
 
