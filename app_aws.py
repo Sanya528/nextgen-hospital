@@ -22,7 +22,7 @@ doctors_table = dynamodb.Table("Doctors")
 # ADMIN LOGIN (FIXED)
 # ========================
 ADMIN_EMAIL = "admin@hospital.com"
-ADMIN_PASSWORD = "admin123"  # STATIC PASSWORD — FIXED
+ADMIN_PASSWORD = "admin123"
 
 # ========================
 # HEALTH TIPS
@@ -38,15 +38,9 @@ health_tips = [
     {"title": "Regular Checkups", "content": "Early detection saves lives."},
 ]
 
-# ========================
-# AUTH HELPER
-# ========================
 def is_logged_in():
     return "patient_email" in session
 
-# ========================
-# HOME
-# ========================
 @app.route("/")
 def home():
     tips = random.sample(health_tips, min(4, len(health_tips)))
@@ -113,12 +107,12 @@ def login():
         email = request.form["email"]
         password = request.form["password"]
 
-        # ================= ADMIN LOGIN =================
+        # ADMIN LOGIN
         if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
             session["admin"] = True
             return redirect(url_for("admin_dashboard"))
 
-        # ================= PATIENT LOGIN =================
+        # PATIENT LOGIN
         patients = patients_table.scan().get("Items", [])
         for p in patients:
             if p["email"] == email and check_password_hash(p["password"], password):
@@ -148,96 +142,9 @@ def doctors():
 def doctor_details(doctor_id):
     res = doctors_table.get_item(Key={"doctor_id": doctor_id})
     doctor = res.get("Item")
-
     if not doctor:
         return redirect(url_for("doctors"))
-
     return render_template("doctor_details.html", doctor=doctor)
-
-# ========================
-# APPOINTMENTS
-# ========================
-@app.route("/appointments")
-def appointments_page():
-    if not is_logged_in():
-        return redirect(url_for("login"))
-
-    appts = appointments_table.scan().get("Items", [])
-    my_appts = [a for a in appts if a["patient_id"] == session["patient_id"]]
-
-    doctors = doctors_table.scan().get("Items", [])
-    return render_template("appointments.html", doctors=doctors, appointments=my_appts)
-
-@app.route("/book-appointment", methods=["POST"])
-def book_appointment():
-    if not is_logged_in():
-        return redirect(url_for("login"))
-
-    appointments_table.put_item(Item={
-        "appointment_id": str(uuid.uuid4()),
-        "patient_id": session["patient_id"],
-        "patient_email": session["patient_email"],
-        "doctor": request.form["doctor"],
-        "date": request.form["date"],
-        "time": request.form["time"],
-        "status": "Booked",
-        "timestamp": datetime.now().isoformat()
-    })
-
-    flash("Appointment booked successfully")
-    return redirect(url_for("appointments_page"))
-
-@app.route("/cancel/<appt_id>")
-def cancel(appt_id):
-    res = appointments_table.get_item(Key={"appointment_id": appt_id})
-    appt = res.get("Item")
-
-    if appt:
-        appt["status"] = "Cancelled"
-        appointments_table.put_item(Item=appt)
-
-    flash("Appointment cancelled")
-    return redirect(url_for("appointments_page"))
-
-# ========================
-# PROFILE
-# ========================
-@app.route("/profile", methods=["GET", "POST"])
-def profile():
-    if not is_logged_in():
-        return redirect(url_for("login"))
-
-    pid = session.get("patient_id")
-
-    patients = patients_table.scan().get("Items", [])
-    patient = next((p for p in patients if p["patient_id"] == pid), None)
-
-    if not patient:
-        flash("Session expired. Please login again.")
-        session.clear()
-        return redirect(url_for("login"))
-
-    appts = appointments_table.scan().get("Items", [])
-    my_appts = [a for a in appts if a["patient_id"] == pid]
-
-    doctors = doctors_table.scan().get("Items", [])
-
-    if request.method == "POST":
-        appointments_table.put_item(Item={
-            "appointment_id": str(uuid.uuid4()),
-            "patient_id": pid,
-            "patient_email": session["patient_email"],
-            "doctor": request.form["doctor"],
-            "date": request.form["date"],
-            "time": request.form["time"],
-            "status": "Booked",
-            "timestamp": datetime.now().isoformat()
-        })
-
-        flash("Appointment booked successfully!")
-        return redirect(url_for("profile"))
-
-    return render_template("profile.html", patient=patient, appointments=my_appts, doctors=doctors)
 
 # ========================
 # ADMIN DASHBOARD
@@ -261,7 +168,7 @@ def admin_dashboard():
     )
 
 # ========================
-# ADMIN ADD DOCTOR
+# ADMIN ADD DOCTOR (IMAGE REMOVED)
 # ========================
 @app.route("/admin/add-doctor", methods=["GET", "POST"])
 def add_doctor():
@@ -273,15 +180,14 @@ def add_doctor():
             "doctor_id": str(uuid.uuid4()),
             "name": request.form["name"],
             "specialty": request.form["specialty"],
-            "experience": request.form["experience"],
-            "image": request.form["image"]
+            "experience": request.form["experience"]
         })
         return redirect(url_for("admin_dashboard"))
 
     return render_template("add_doctor.html")
 
 # ========================
-# ADMIN EDIT DOCTOR
+# ADMIN EDIT DOCTOR (IMAGE REMOVED)
 # ========================
 @app.route("/admin/edit-doctor/<doctor_id>", methods=["GET", "POST"])
 def edit_doctor(doctor_id):
@@ -295,8 +201,7 @@ def edit_doctor(doctor_id):
         doctor.update({
             "name": request.form["name"],
             "specialty": request.form["specialty"],
-            "experience": request.form["experience"],
-            "image": request.form["image"]
+            "experience": request.form["experience"]
         })
         doctors_table.put_item(Item=doctor)
         return redirect(url_for("admin_dashboard"))
@@ -313,17 +218,6 @@ def delete_doctor(doctor_id):
 
     doctors_table.delete_item(Key={"doctor_id": doctor_id})
     return redirect(url_for("admin_dashboard"))
-
-# ========================
-# ERROR HANDLERS
-# ========================
-@app.errorhandler(404)
-def not_found(e):
-    return render_template("404.html"), 404
-
-@app.errorhandler(500)
-def error(e):
-    return render_template("500.html"), 500
 
 # ========================
 # RUN
