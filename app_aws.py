@@ -3,7 +3,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import uuid, random, os
 from datetime import datetime
 import boto3
-from botocore.exceptions import ClientError
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "nextgen_secret")
@@ -19,8 +18,11 @@ appointments_table = dynamodb.Table("Appointments")
 contacts_table = dynamodb.Table("Contacts")
 doctors_table = dynamodb.Table("Doctors")
 
+# ========================
+# ADMIN LOGIN (FIXED)
+# ========================
 ADMIN_EMAIL = "admin@hospital.com"
-ADMIN_PASSWORD = generate_password_hash("admin123")
+ADMIN_PASSWORD = "admin123"  # STATIC PASSWORD — FIXED
 
 # ========================
 # HEALTH TIPS
@@ -111,12 +113,12 @@ def login():
         email = request.form["email"]
         password = request.form["password"]
 
-        # Admin Login
-        if email == ADMIN_EMAIL and check_password_hash(ADMIN_PASSWORD, password):
+        # ================= ADMIN LOGIN =================
+        if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
             session["admin"] = True
             return redirect(url_for("admin_dashboard"))
 
-        # Patient Login
+        # ================= PATIENT LOGIN =================
         patients = patients_table.scan().get("Items", [])
         for p in patients:
             if p["email"] == email and check_password_hash(p["password"], password):
@@ -153,7 +155,7 @@ def doctor_details(doctor_id):
     return render_template("doctor_details.html", doctor=doctor)
 
 # ========================
-# APPOINTMENTS PAGE
+# APPOINTMENTS
 # ========================
 @app.route("/appointments")
 def appointments_page():
@@ -166,9 +168,6 @@ def appointments_page():
     doctors = doctors_table.scan().get("Items", [])
     return render_template("appointments.html", doctors=doctors, appointments=my_appts)
 
-# ========================
-# BOOK APPOINTMENT
-# ========================
 @app.route("/book-appointment", methods=["POST"])
 def book_appointment():
     if not is_logged_in():
@@ -188,9 +187,6 @@ def book_appointment():
     flash("Appointment booked successfully")
     return redirect(url_for("appointments_page"))
 
-# ========================
-# CANCEL APPOINTMENT
-# ========================
 @app.route("/cancel/<appt_id>")
 def cancel(appt_id):
     res = appointments_table.get_item(Key={"appointment_id": appt_id})
@@ -330,9 +326,7 @@ def error(e):
     return render_template("500.html"), 500
 
 # ========================
-# RUN (AWS SAFE)
+# RUN
 # ========================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
-
-
