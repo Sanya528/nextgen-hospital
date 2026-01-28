@@ -127,12 +127,9 @@ def login():
             patients = []
 
         for p in patients:
-            stored_email = p.get("email", "").strip().lower()
-            stored_password = p.get("password", "")
-
-            if stored_email == email and check_password_hash(stored_password, password):
+            if p.get("email", "").lower() == email and check_password_hash(p.get("password", ""), password):
                 session.clear()
-                session["patient_email"] = stored_email
+                session["patient_email"] = p.get("email")
                 session["patient_id"] = p.get("patient_id")
                 return redirect(url_for("profile"))
 
@@ -216,9 +213,9 @@ def cancel(appt_id):
     return redirect(url_for("appointments_page"))
 
 # ========================
-# PROFILE
+# PROFILE (FIXED — ALLOWS POST)
 # ========================
-@app.route("/profile")
+@app.route("/profile", methods=["GET", "POST"])
 def profile():
     if not is_logged_in():
         return redirect(url_for("login"))
@@ -231,6 +228,21 @@ def profile():
     if not patient:
         session.clear()
         return redirect(url_for("login"))
+
+    # BOOK APPOINTMENT INSIDE PROFILE
+    if request.method == "POST":
+        appointments_table.put_item(Item={
+            "appointment_id": str(uuid.uuid4()),
+            "patient_id": pid,
+            "patient_email": session["patient_email"],
+            "doctor": request.form["doctor"],
+            "date": request.form["date"],
+            "time": request.form["time"],
+            "status": "Booked",
+            "timestamp": datetime.now().isoformat()
+        })
+        flash("Appointment booked successfully!")
+        return redirect(url_for("profile"))
 
     appts = appointments_table.scan().get("Items", [])
     my_appts = [a for a in appts if a.get("patient_id") == pid]
