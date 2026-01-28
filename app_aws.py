@@ -41,6 +41,9 @@ health_tips = [
 def is_logged_in():
     return "patient_email" in session
 
+# ========================
+# HOME
+# ========================
 @app.route("/")
 def home():
     tips = random.sample(health_tips, min(4, len(health_tips)))
@@ -56,14 +59,18 @@ def about():
 @app.route("/contact", methods=["GET", "POST"])
 def contact():
     if request.method == "POST":
-        contacts_table.put_item(Item={
-            "contact_id": str(uuid.uuid4()),
-            "name": request.form["name"],
-            "email": request.form["email"],
-            "message": request.form["message"],
-            "timestamp": datetime.now().isoformat()
-        })
-        flash("Message sent successfully!")
+        try:
+            contacts_table.put_item(Item={
+                "contact_id": str(uuid.uuid4()),
+                "name": request.form["name"],
+                "email": request.form["email"],
+                "message": request.form["message"],
+                "timestamp": datetime.now().isoformat()
+            })
+            flash("Message sent successfully!")
+        except:
+            flash("Error saving contact")
+
     return render_template("contact.html")
 
 # ========================
@@ -72,11 +79,15 @@ def contact():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
-        email = request.form["email"]
+        email = request.form["email"].strip().lower()
 
-        existing = patients_table.scan().get("Items", [])
+        try:
+            existing = patients_table.scan().get("Items", [])
+        except:
+            existing = []
+
         for p in existing:
-            if p["email"] == email:
+            if p.get("email") == email:
                 flash("Email already registered")
                 return redirect(url_for("login"))
 
@@ -97,35 +108,37 @@ def register():
     return render_template("register.html")
 
 # ========================
-# LOGIN
+# LOGIN (FULL FIX)
 # ========================
 @app.route("/login", methods=["GET", "POST"])
 def login():
     show_register = False
 
     if request.method == "POST":
-        email = request.form.get("email")
-        password = request.form.get("password")
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
 
-        # ADMIN LOGIN — ALWAYS WORKS
-        if email == "admin@hospital.com" and password == "admin123":
+        # ADMIN LOGIN
+        if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
+            session.clear()
             session["admin"] = True
             return redirect(url_for("admin_dashboard"))
 
-        # PATIENT LOGIN — SAFE MODE
+        # PATIENT LOGIN
         try:
             patients = patients_table.scan().get("Items", [])
         except:
             patients = []
 
         for p in patients:
-            try:
-                if p.get("email") == email and check_password_hash(p.get("password"), password):
-                    session["patient_email"] = p.get("email")
-                    session["patient_id"] = p.get("patient_id")
-                    return redirect(url_for("profile"))
-            except:
-                pass
+            stored_email = p.get("email", "").strip().lower()
+            stored_password = p.get("password", "")
+
+            if stored_email == email and check_password_hash(stored_password, password):
+                session.clear()
+                session["patient_email"] = stored_email
+                session["patient_id"] = p.get("patient_id")
+                return redirect(url_for("profile"))
 
         flash("Invalid credentials")
         show_register = True
@@ -138,7 +151,7 @@ def logout():
     return redirect(url_for("home"))
 
 # ========================
-# DOCTORS
+# DOCTORS (NO IMAGE)
 # ========================
 @app.route("/doctors")
 def doctors():
@@ -149,9 +162,80 @@ def doctors():
 def doctor_details(doctor_id):
     res = doctors_table.get_item(Key={"doctor_id": doctor_id})
     doctor = res.get("Item")
+
     if not doctor:
         return redirect(url_for("doctors"))
+
     return render_template("doctor_details.html", doctor=doctor)
+
+# ========================
+# APPOINTMENTS
+# ========================
+@app.route("/appointments")
+def appointments_page():
+    if not is_logged_in():
+        return redirect(url_for("login"))
+
+    appts = appointments_table.scan().get("Items", [])
+    my_appts = [a for a in appts if a.get("patient_id") == session.get("patient_id")]
+
+    doctors = doctors_table.scan().get("Items", [])
+    return render_template("appointments.html", doctors=doctors, appointments=my_appts)
+
+@app.route("/book-appointment", methods=["POST"])
+def book_appointment():
+    if not is_logged_in():
+        return redirect(url_for("login"))
+
+    appointments_table.put_item(Item={
+        "appointment_id": str(uuid.uuid4()),
+        "patient_id": session["patient_id"],
+        "patient_email": session["patient_email"],
+        "doctor": request.form["doctor"],
+        "date": request.form["date"],
+        "time": request.form["time"],
+        "status": "Booked",
+        "timestamp": datetime.now().isoformat()
+    })
+
+    flash("Appointment booked successfully")
+    return redirect(url_for("appointments_page"))
+
+@app.route("/cancel/<appt_id>")
+def cancel(appt_id):
+    res = appointments_table.get_item(Key={"appointment_id": appt_id})
+    appt = res.get("Item")
+
+    if appt:
+        appt["status"] = "Cancelled"
+        appointments_table.put_item(Item=appt)
+
+    flash("Appointment cancelled")
+    return redirect(url_for("appointments_page"))
+
+# ========================
+# PROFILE
+# ========================
+@app.route("/profile")
+def profile():
+    if not is_logged_in():
+        return redirect(url_for("login"))
+
+    pid = session.get("patient_id")
+
+    patients = patients_table.scan().get("Items", [])
+    patient = next((p for p in patients if p.get("patient_id") == pid), None)
+
+    if not patient:
+        session.clear()
+        return redirect(url_for("login"))
+
+    appts = appointments_table.scan().get("Items", [])
+    my_appts = [a for a in appts if a.get("patient_id") == pid]
+
+    doctors = doctors_table.scan().get("Items", [])
+
+    return render_template("profile.html", patient=patient, appointments=my_appts, doctors=doctors)
 
 # ========================
 # ADMIN DASHBOARD
@@ -175,7 +259,7 @@ def admin_dashboard():
     )
 
 # ========================
-# ADMIN ADD DOCTOR (IMAGE REMOVED)
+# ADMIN ADD DOCTOR (NO IMAGE)
 # ========================
 @app.route("/admin/add-doctor", methods=["GET", "POST"])
 def add_doctor():
@@ -194,41 +278,7 @@ def add_doctor():
     return render_template("add_doctor.html")
 
 # ========================
-# ADMIN EDIT DOCTOR (IMAGE REMOVED)
-# ========================
-@app.route("/admin/edit-doctor/<doctor_id>", methods=["GET", "POST"])
-def edit_doctor(doctor_id):
-    if "admin" not in session:
-        return redirect(url_for("login"))
-
-    res = doctors_table.get_item(Key={"doctor_id": doctor_id})
-    doctor = res.get("Item")
-
-    if request.method == "POST":
-        doctor.update({
-            "name": request.form["name"],
-            "specialty": request.form["specialty"],
-            "experience": request.form["experience"]
-        })
-        doctors_table.put_item(Item=doctor)
-        return redirect(url_for("admin_dashboard"))
-
-    return render_template("add_doctor.html", doctor=doctor, edit=True)
-
-# ========================
-# ADMIN DELETE DOCTOR
-# ========================
-@app.route("/admin/delete-doctor/<doctor_id>")
-def delete_doctor(doctor_id):
-    if "admin" not in session:
-        return redirect(url_for("login"))
-
-    doctors_table.delete_item(Key={"doctor_id": doctor_id})
-    return redirect(url_for("admin_dashboard"))
-
-# ========================
 # RUN
 # ========================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
-
