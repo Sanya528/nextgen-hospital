@@ -18,9 +18,6 @@ appointments_table = dynamodb.Table("Appointments")
 contacts_table = dynamodb.Table("Contacts")
 doctors_table = dynamodb.Table("Doctors")
 
-# ========================
-# ADMIN LOGIN
-# ========================
 ADMIN_EMAIL = "admin@hospital.com"
 ADMIN_PASSWORD = "admin123"
 
@@ -77,11 +74,7 @@ def register():
     if request.method == "POST":
         email = request.form["email"].strip().lower()
 
-        try:
-            existing = patients_table.scan().get("Items", [])
-        except:
-            existing = []
-
+        existing = patients_table.scan().get("Items", [])
         for p in existing:
             if p.get("email") == email:
                 flash("Email already registered")
@@ -98,7 +91,7 @@ def register():
             "diseases": request.form["diseases"]
         })
 
-        flash("Registration successful. Login now.")
+        flash("Registration successful")
         return redirect(url_for("login"))
 
     return render_template("register.html")
@@ -108,11 +101,9 @@ def register():
 # ========================
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    show_register = False
-
     if request.method == "POST":
-        email = request.form.get("email", "").strip().lower()
-        password = request.form.get("password", "")
+        email = request.form["email"].strip().lower()
+        password = request.form["password"]
 
         # ADMIN LOGIN
         if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
@@ -121,22 +112,17 @@ def login():
             return redirect(url_for("admin_dashboard"))
 
         # PATIENT LOGIN
-        try:
-            patients = patients_table.scan().get("Items", [])
-        except:
-            patients = []
-
+        patients = patients_table.scan().get("Items", [])
         for p in patients:
-            if p.get("email", "").lower() == email and check_password_hash(p.get("password", ""), password):
+            if p.get("email") == email and check_password_hash(p.get("password"), password):
                 session.clear()
-                session["patient_email"] = p.get("email")
-                session["patient_id"] = p.get("patient_id")
+                session["patient_email"] = p["email"]
+                session["patient_id"] = p["patient_id"]
                 return redirect(url_for("profile"))
 
         flash("Invalid credentials")
-        show_register = True
 
-    return render_template("login.html", show_register=show_register)
+    return render_template("login.html")
 
 @app.route("/logout")
 def logout():
@@ -144,20 +130,20 @@ def logout():
     return redirect(url_for("home"))
 
 # ========================
-# DOCTORS
+# DOCTORS LIST
 # ========================
 @app.route("/doctors")
 def doctors():
     doctors = doctors_table.scan().get("Items", [])
     return render_template("doctors.html", doctors=doctors)
 
+# ========================
+# DOCTOR DETAILS (FIXED)
+# ========================
 @app.route("/doctor/<doctor_id>")
 def doctor_details(doctor_id):
     res = doctors_table.get_item(Key={"doctor_id": doctor_id})
     doctor = res.get("Item")
-
-    if not doctor:
-        return redirect(url_for("doctors"))
 
     return render_template("doctor_details.html", doctor=doctor)
 
@@ -170,7 +156,7 @@ def appointments_page():
         return redirect(url_for("login"))
 
     appts = appointments_table.scan().get("Items", [])
-    my_appts = [a for a in appts if a.get("patient_id") == session.get("patient_id")]
+    my_appts = [a for a in appts if a["patient_id"] == session["patient_id"]]
 
     doctors = doctors_table.scan().get("Items", [])
     return render_template("appointments.html", doctors=doctors, appointments=my_appts)
@@ -194,15 +180,15 @@ def book_appointment():
         "timestamp": datetime.now().isoformat()
     })
 
-    flash("Appointment booked successfully")
+    flash("Appointment booked")
     return redirect(url_for("appointments_page"))
 
 # ========================
-# CANCEL APPOINTMENT
+# CANCEL APPOINTMENT (FIXED)
 # ========================
-@app.route("/cancel/<appt_id>")
-def cancel(appt_id):
-    res = appointments_table.get_item(Key={"appointment_id": appt_id})
+@app.route("/cancel/<appointment_id>")
+def cancel(appointment_id):
+    res = appointments_table.get_item(Key={"appointment_id": appointment_id})
     appt = res.get("Item")
 
     if appt:
@@ -213,23 +199,23 @@ def cancel(appt_id):
     return redirect(url_for("appointments_page"))
 
 # ========================
-# PROFILE (FIXED — ALLOWS POST)
+# PROFILE
 # ========================
 @app.route("/profile", methods=["GET", "POST"])
 def profile():
     if not is_logged_in():
         return redirect(url_for("login"))
 
-    pid = session.get("patient_id")
+    pid = session["patient_id"]
 
     patients = patients_table.scan().get("Items", [])
-    patient = next((p for p in patients if p.get("patient_id") == pid), None)
+    patient = next((p for p in patients if p["patient_id"] == pid), None)
 
     if not patient:
         session.clear()
         return redirect(url_for("login"))
 
-    # BOOK APPOINTMENT INSIDE PROFILE
+    # Book from profile
     if request.method == "POST":
         appointments_table.put_item(Item={
             "appointment_id": str(uuid.uuid4()),
@@ -241,11 +227,11 @@ def profile():
             "status": "Booked",
             "timestamp": datetime.now().isoformat()
         })
-        flash("Appointment booked successfully!")
+        flash("Appointment booked")
         return redirect(url_for("profile"))
 
     appts = appointments_table.scan().get("Items", [])
-    my_appts = [a for a in appts if a.get("patient_id") == pid]
+    my_appts = [a for a in appts if a["patient_id"] == pid]
 
     doctors = doctors_table.scan().get("Items", [])
 
