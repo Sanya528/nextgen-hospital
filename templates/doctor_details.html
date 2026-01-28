@@ -2,24 +2,20 @@
 {% block content %}
 
 {% if doctor %}
-<div class="card doctor-profile">
+<div class="card">
 
-  <img src="{{ doctor.image }}" style="width:250px;border-radius:16px">
+<h2>{{ doctor.name }}</h2>
 
-  <h2>{{ doctor.name }}</h2>
+<p><b>Specialty:</b> {{ doctor.specialty }}</p>
+<p><b>Experience:</b> {{ doctor.experience }} years</p>
 
-  <p><b>Specialty:</b> {{ doctor.specialty }}</p>
-  <p><b>Experience:</b> {{ doctor.experience }} years</p>
-
-  <a href="/appointments">
-    <button class="btn-primary">Book Appointment</button>
-  </a>
+<a href="/appointments">
+<button class="btn-primary">Book Appointment</button>
+</a>
 
 </div>
 {% else %}
-<div class="card center">
-  <h2>Doctor Not Found</h2>
-</div>
+<h2>Doctor Not Found</h2>
 {% endif %}
 
 {% endblock %}
