@@ -1,11 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="section-card">
-
 <h2>Book Appointment</h2>
 
-<form method="post" action="/book-appointment">
+<form method="POST" action="/book-appointment">
 
 <label>Select Doctor</label>
 <select name="doctor">
@@ -20,16 +18,12 @@
 <label>Time</label>
 <input type="time" name="time" required>
 
-<button class="btn-primary">Book Appointment</button>
-
+<button type="submit">Book</button>
 </form>
-</div>
-
-<div class="section-card">
 
 <h2>Your Appointments</h2>
 
-<table class="appointment-table">
+<table border="1">
 <tr>
 <th>Doctor</th>
 <th>Date</th>
@@ -46,16 +40,11 @@
 <td>{{ a.status }}</td>
 <td>
 {% if a.status != "Cancelled" %}
-<a href="/cancel/{{ a.appointment_id }}">
-<button class="btn-danger">Cancel</button>
-</a>
+<a href="/cancel/{{ a.appointment_id }}">Cancel</a>
 {% endif %}
 </td>
 </tr>
 {% endfor %}
-
 </table>
-
-</div>
 
 {% endblock %}
