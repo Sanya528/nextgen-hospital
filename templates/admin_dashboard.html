@@ -5,7 +5,6 @@
   <h2 class="section-title">Admin Dashboard</h2>
 </div>
 
-<!-- ===================== DOCTORS ===================== -->
 <div class="card">
   <h3>Manage Doctors</h3>
 
@@ -24,23 +23,19 @@
 
     {% for d in doctors %}
     <tr>
-      <td>
-        <img src="{{ d.image }}" width="60" style="border-radius: 50%;">
-      </td>
+      <td><img src="{{ d.image }}" width="60"></td>
       <td>{{ d.name }}</td>
       <td>{{ d.specialty }}</td>
       <td>{{ d.experience }} yrs</td>
       <td>
         <a href="/admin/edit-doctor/{{ d.doctor_id }}">Edit</a> |
-        <a href="/admin/delete-doctor/{{ d.doctor_id }}"
-           onclick="return confirm('Delete this doctor?')">Delete</a>
+        <a href="/admin/delete-doctor/{{ d.doctor_id }}">Delete</a>
       </td>
     </tr>
     {% endfor %}
   </table>
 </div>
 
-<!-- ===================== PATIENTS ===================== -->
 <div class="card">
   <h3>Registered Patients</h3>
 
@@ -59,7 +54,6 @@
   </table>
 </div>
 
-<!-- ===================== APPOINTMENTS ===================== -->
 <div class="card">
   <h3>Appointments</h3>
 
@@ -84,7 +78,6 @@
   </table>
 </div>
 
-<!-- ===================== CONTACT MESSAGES ===================== -->
 <div class="card">
   <h3>Contact Messages</h3>
 
