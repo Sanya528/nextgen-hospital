@@ -31,8 +31,8 @@
       <td>{{ d.specialty }}</td>
       <td>{{ d.experience }} yrs</td>
       <td>
-        <a href="/admin/edit-doctor/{{ loop.index0 }}">Edit</a> |
-        <a href="/admin/delete-doctor/{{ loop.index0 }}" 
+        <a href="/admin/edit-doctor/{{ d.doctor_id }}">Edit</a> |
+        <a href="/admin/delete-doctor/{{ d.doctor_id }}" 
            onclick="return confirm('Delete this doctor?')">Delete</a>
       </td>
     </tr>
@@ -101,7 +101,7 @@
       <td>{{ c.name }}</td>
       <td>{{ c.email }}</td>
       <td>{{ c.message }}</td>
-      <td>{{ c.timestamp.strftime('%d %b %Y %H:%M') if c.timestamp else '' }}</td>
+      <td>{{ c.timestamp }}</td>
     </tr>
     {% endfor %}
   </table>
