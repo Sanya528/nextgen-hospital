@@ -19,7 +19,7 @@ contacts_table = dynamodb.Table("Contacts")
 doctors_table = dynamodb.Table("Doctors")
 
 # ========================
-# ADMIN LOGIN (FIXED)
+# ADMIN LOGIN
 # ========================
 ADMIN_EMAIL = "admin@hospital.com"
 ADMIN_PASSWORD = "admin123"
@@ -59,18 +59,14 @@ def about():
 @app.route("/contact", methods=["GET", "POST"])
 def contact():
     if request.method == "POST":
-        try:
-            contacts_table.put_item(Item={
-                "contact_id": str(uuid.uuid4()),
-                "name": request.form["name"],
-                "email": request.form["email"],
-                "message": request.form["message"],
-                "timestamp": datetime.now().isoformat()
-            })
-            flash("Message sent successfully!")
-        except:
-            flash("Error saving contact")
-
+        contacts_table.put_item(Item={
+            "contact_id": str(uuid.uuid4()),
+            "name": request.form["name"],
+            "email": request.form["email"],
+            "message": request.form["message"],
+            "timestamp": datetime.now().isoformat()
+        })
+        flash("Message sent successfully!")
     return render_template("contact.html")
 
 # ========================
@@ -108,7 +104,7 @@ def register():
     return render_template("register.html")
 
 # ========================
-# LOGIN (FULL FIX)
+# LOGIN
 # ========================
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -151,7 +147,7 @@ def logout():
     return redirect(url_for("home"))
 
 # ========================
-# DOCTORS (NO IMAGE)
+# DOCTORS
 # ========================
 @app.route("/doctors")
 def doctors():
@@ -169,7 +165,7 @@ def doctor_details(doctor_id):
     return render_template("doctor_details.html", doctor=doctor)
 
 # ========================
-# APPOINTMENTS
+# APPOINTMENTS PAGE
 # ========================
 @app.route("/appointments")
 def appointments_page():
@@ -182,6 +178,9 @@ def appointments_page():
     doctors = doctors_table.scan().get("Items", [])
     return render_template("appointments.html", doctors=doctors, appointments=my_appts)
 
+# ========================
+# BOOK APPOINTMENT
+# ========================
 @app.route("/book-appointment", methods=["POST"])
 def book_appointment():
     if not is_logged_in():
@@ -201,6 +200,9 @@ def book_appointment():
     flash("Appointment booked successfully")
     return redirect(url_for("appointments_page"))
 
+# ========================
+# CANCEL APPOINTMENT
+# ========================
 @app.route("/cancel/<appt_id>")
 def cancel(appt_id):
     res = appointments_table.get_item(Key={"appointment_id": appt_id})
@@ -250,8 +252,7 @@ def admin_dashboard():
     appointments = appointments_table.scan().get("Items", [])
     contacts = contacts_table.scan().get("Items", [])
 
-    return render_template(
-        "admin_dashboard.html",
+    return render_template("admin_dashboard.html",
         doctors=doctors,
         patients=patients,
         appointments=appointments,
@@ -259,7 +260,7 @@ def admin_dashboard():
     )
 
 # ========================
-# ADMIN ADD DOCTOR (NO IMAGE)
+# ADMIN ADD DOCTOR
 # ========================
 @app.route("/admin/add-doctor", methods=["GET", "POST"])
 def add_doctor():
