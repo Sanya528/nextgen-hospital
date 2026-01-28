@@ -1,48 +1,35 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="section-card appointment-card">
+<div class="section-card">
 
-<h2 class="page-title">Book Appointment</h2>
+<h2>Book Appointment</h2>
 
 <form method="post" action="/book-appointment">
 
-<div class="form-row">
 <label>Select Doctor</label>
 <select name="doctor">
 {% for d in doctors %}
 <option>{{ d.name }} — {{ d.specialty }}</option>
 {% endfor %}
 </select>
-</div>
 
-<div class="form-grid">
+<label>Date</label>
+<input type="date" name="date" required>
 
-  <div class="form-row">
-    <label>Date</label>
-    <input type="date" name="date" required>
-  </div>
+<label>Time</label>
+<input type="time" name="time" required>
 
-  <div class="form-row">
-    <label>Time</label>
-    <input type="time" name="time" required>
-  </div>
-
-</div>
-
-<div class="form-actions">
 <button class="btn-primary">Book Appointment</button>
-</div>
 
 </form>
 </div>
 
 <div class="section-card">
 
-<h2 class="page-title">Your Appointments</h2>
+<h2>Your Appointments</h2>
 
 <table class="appointment-table">
-
 <tr>
 <th>Doctor</th>
 <th>Date</th>
