@@ -17,7 +17,6 @@
 </div>
 
 <div class="form-grid">
-
   <div class="form-row">
     <label>Date</label>
     <input type="date" name="date" required>
@@ -27,7 +26,6 @@
     <label>Time</label>
     <input type="time" name="time" required>
   </div>
-
 </div>
 
 <div class="form-actions">
@@ -59,7 +57,7 @@
 <td>{{ a.status }}</td>
 <td>
 {% if a.status != "Cancelled" %}
-<a href="/cancel/{{a.id}}">
+<a href="/cancel/{{ a.appointment_id }}">
 <button class="btn-danger">Cancel</button>
 </a>
 {% endif %}
