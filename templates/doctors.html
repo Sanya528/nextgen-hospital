@@ -1,28 +1,21 @@
 {% extends "base.html" %}
 {% block content %}
 
+{% if doctor %}
 <div class="card">
-  <h2 class="section-title">Our Medical Specialists</h2>
 
-  <div class="doctor-grid">
-    
-    {% for doctor in doctors %}
-    <div class="doctor-card">
+<h2>{{ doctor.name }}</h2>
 
-      <img src="{{ doctor.image }}" class="doctor-img">
+<p><b>Specialty:</b> {{ doctor.specialty }}</p>
+<p><b>Experience:</b> {{ doctor.experience }} years</p>
 
-      <h3 class="doctor-name">
-        <a href="/doctor/{{ loop.index0 }}">{{ doctor.name }}</a>
-      </h3>
+<a href="/appointments">
+<button class="btn-primary">Book Appointment</button>
+</a>
 
-      <p class="doctor-specialty">{{ doctor.specialty }}</p>
-
-      <p class="doctor-exp">{{ doctor.experience }} years experience</p>
-
-    </div>
-    {% endfor %}
-
-  </div>
 </div>
+{% else %}
+<h2>Doctor Not Found</h2>
+{% endif %}
 
 {% endblock %}
