@@ -1,317 +1,332 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-import os
+from werkzeug.security import generate_password_hash, check_password_hash
+import uuid, random, os
+from datetime import datetime
 import boto3
-import uuid
-
-from werkzeug.utils import secure_filename
-from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 
 app = Flask(__name__)
-app.secret_key = "nextgen_secret"
+app.secret_key = os.environ.get("SECRET_KEY", "nextgen_secret")
 
-# AWS Configuration 
-REGION = 'us-east-1' 
+# ========================
+# AWS CONFIG
+# ========================
+REGION = os.environ.get("AWS_REGION", "us-east-1")
+dynamodb = boto3.resource("dynamodb", region_name=REGION)
 
-dynamodb = boto3.resource('dynamodb', region_name=REGION)
-sns = boto3.client('sns', region_name=REGION)
+patients_table = dynamodb.Table("Patients")
+appointments_table = dynamodb.Table("Appointments")
+contacts_table = dynamodb.Table("Contacts")
+doctors_table = dynamodb.Table("Doctors")
 
-# DynamoDB Tables (Create these tables in DynamoDB manually)
-users_table = dynamodb.Table('Users')
-admin_users_table = dynamodb.Table('AdminUsers')
-projects_table = dynamodb.Table('Projects')
-enrollments_table = dynamodb.Table('Enrollments')
+ADMIN_EMAIL = "admin@hospital.com"
+ADMIN_PASSWORD = generate_password_hash("admin123")
 
-# SNS Topic ARN (Replace with your actual SNS Topic ARN)
-SNS_TOPIC_ARN = 'arn:aws:sns:us-east-1:604665149129:aws_capstone_topic' 
+# ========================
+# HEALTH TIPS
+# ========================
+health_tips = [
+    {"title": "Stay Hydrated", "content": "Drink at least 7–8 glasses of water daily."},
+    {"title": "Eat Balanced Meals", "content": "Include fruits, vegetables, and whole grains."},
+    {"title": "Exercise Regularly", "content": "At least 30 minutes of activity daily."},
+    {"title": "Get Enough Sleep", "content": "Aim for 7–9 hours of sleep."},
+    {"title": "Manage Stress", "content": "Practice meditation or relaxation."},
+    {"title": "Limit Junk Food", "content": "Avoid excess sugar and processed foods."},
+    {"title": "Maintain Hygiene", "content": "Wash hands regularly to prevent infections."},
+    {"title": "Regular Checkups", "content": "Early detection saves lives."},
+]
 
-# Configuration for File Uploads
-UPLOAD_FOLDER = 'static/uploads'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# ========================
+# AUTH HELPER
+# ========================
+def is_logged_in():
+    return "patient_email" in session
 
-# Ensure upload directory exists
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-# ============================
-# SNS Notification Function
-# ============================
-def send_notification(subject, message):
-    try:
-        sns.publish(
-            TopicArn=SNS_TOPIC_ARN,
-            Subject=subject,
-            Message=message
-        )
-    except ClientError as e:
-        print(f"Error sending notification: {e}")
-
-# ============================
-# ROUTES
-# ============================
-
-@app.route('/')
-def index():
-    if 'username' in session:
-        return redirect(url_for('home'))
-    return render_template('index.html')
-
-@app.route('/about')
-def about():
-    return render_template('about.html')
-
-# ============================
-# USER SIGNUP
-# ============================
-@app.route('/signup', methods=['GET', 'POST'])
-def signup():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        
-        response = users_table.get_item(Key={'username': username})
-        if 'Item' in response:
-            return "User already exists!"
-        
-        users_table.put_item(Item={'username': username, 'password': password})
-        
-        # SNS Notification
-        send_notification(
-            "New User Signup",
-            f"User {username} has signed up."
-        )
-        
-        return redirect(url_for('login'))
-        
-    return render_template('signup.html')
-
-# ============================
-# USER LOGIN
-# ============================
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        
-        response = users_table.get_item(Key={'username': username})
-        
-        if 'Item' in response and response['Item']['password'] == password:
-            session['username'] = username
-            
-            # SNS Notification
-            send_notification(
-                "User Login",
-                f"User {username} has logged in."
-            )
-            
-            return redirect(url_for('home'))
-        
-        return "Invalid credentials!"
-        
-    return render_template('login.html')
-
-# ============================
+# ========================
 # HOME
-# ============================
-@app.route('/home')
+# ========================
+@app.route("/")
 def home():
-    if 'username' in session:
-        username = session['username']
-        
-        response = enrollments_table.get_item(Key={'username': username})
-        user_enrollments_ids = response.get('Item', {}).get('project_ids', [])
-        
-        my_projects = []
-        if user_enrollments_ids:
-            for pid in user_enrollments_ids:
-                p_res = projects_table.get_item(Key={'id': pid})
-                if 'Item' in p_res:
-                    my_projects.append(p_res['Item'])
+    tips = random.sample(health_tips, min(4, len(health_tips)))
+    return render_template("index.html", tips=tips)
 
-        return render_template('home.html', username=username, my_projects=my_projects)
-        
-    return redirect(url_for('login'))
+@app.route("/about")
+def about():
+    return render_template("about.html")
 
-# ============================
-# PROJECT LIST
-# ============================
-@app.route('/projects')
-def projects_list():
-    if 'username' not in session:
-        return redirect(url_for('login'))
-        
-    username = session['username']
-    
-    res_enroll = enrollments_table.get_item(Key={'username': username})
-    user_enrollments_ids = res_enroll.get('Item', {}).get('project_ids', [])
-    
-    res_projects = projects_table.scan()
-    projects = res_projects.get('Items', [])
-    
-    return render_template('projects_list.html', projects=projects, user_enrollments=user_enrollments_ids)
+# ========================
+# CONTACT
+# ========================
+@app.route("/contact", methods=["GET", "POST"])
+def contact():
+    if request.method == "POST":
+        contacts_table.put_item(Item={
+            "contact_id": str(uuid.uuid4()),
+            "name": request.form["name"],
+            "email": request.form["email"],
+            "message": request.form["message"],
+            "timestamp": datetime.now().isoformat()
+        })
+        flash("Message sent successfully!")
+    return render_template("contact.html")
 
-# ============================
-# PROJECT ENROLLMENT
-# ============================
-@app.route('/enroll/<project_id>')
-def enroll(project_id):
-    if 'username' not in session:
-        return redirect(url_for('login'))
-        
-    username = session['username']
-    
-    response = enrollments_table.get_item(Key={'username': username})
-    current_enrollments = response.get('Item', {}).get('project_ids', [])
-    
-    if project_id not in current_enrollments:
-        current_enrollments.append(project_id)
-        enrollments_table.put_item(Item={'username': username, 'project_ids': current_enrollments})
-        
-        # SNS Notification
-        send_notification(
-            "Project Enrollment",
-            f"User {username} enrolled in project ID {project_id}"
-        )
-        
-    return redirect(url_for('home'))
+# ========================
+# REGISTER
+# ========================
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        email = request.form["email"]
 
-# ============================
-# LOGOUT
-# ============================
-@app.route('/logout')
+        existing = patients_table.scan().get("Items", [])
+        for p in existing:
+            if p["email"] == email:
+                flash("Email already registered")
+                return redirect(url_for("login"))
+
+        patients_table.put_item(Item={
+            "patient_id": str(uuid.uuid4()),
+            "name": request.form["name"],
+            "email": email,
+            "password": generate_password_hash(request.form["password"]),
+            "dob": request.form["dob"],
+            "blood": request.form["blood"],
+            "allergies": request.form["allergies"],
+            "diseases": request.form["diseases"]
+        })
+
+        flash("Registration successful. Login now.")
+        return redirect(url_for("login"))
+
+    return render_template("register.html")
+
+# ========================
+# LOGIN
+# ========================
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    show_register = False
+
+    if request.method == "POST":
+        email = request.form["email"]
+        password = request.form["password"]
+
+        # Admin Login
+        if email == ADMIN_EMAIL and check_password_hash(ADMIN_PASSWORD, password):
+            session["admin"] = True
+            return redirect(url_for("admin_dashboard"))
+
+        # Patient Login
+        patients = patients_table.scan().get("Items", [])
+        for p in patients:
+            if p["email"] == email and check_password_hash(p["password"], password):
+                session["patient_email"] = p["email"]
+                session["patient_id"] = p["patient_id"]
+                return redirect(url_for("profile"))
+
+        flash("Invalid credentials")
+        show_register = True
+
+    return render_template("login.html", show_register=show_register)
+
+@app.route("/logout")
 def logout():
-    session.pop('username', None)
-    return redirect(url_for('index'))
+    session.clear()
+    return redirect(url_for("home"))
 
-# ============================
-# ADMIN SIGNUP
-# ============================
-@app.route('/admin/signup', methods=['GET', 'POST'])
-def admin_signup():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        
-        response = admin_users_table.get_item(Key={'username': username})
-        if 'Item' in response:
-            return "Admin already exists!"
-        
-        admin_users_table.put_item(Item={'username': username, 'password': password})
-        
-        # SNS Notification
-        send_notification(
-            "Admin Signup",
-            f"Admin {username} registered."
-        )
-        
-        return redirect(url_for('admin_login'))
-        
-    return render_template('admin_signup.html')
+# ========================
+# DOCTORS
+# ========================
+@app.route("/doctors")
+def doctors():
+    doctors = doctors_table.scan().get("Items", [])
+    return render_template("doctors.html", doctors=doctors)
 
-# ============================
-# ADMIN LOGIN
-# ============================
-@app.route('/admin/login', methods=['GET', 'POST'])
-def admin_login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        
-        response = admin_users_table.get_item(Key={'username': username})
-        
-        if 'Item' in response and response['Item']['password'] == password:
-            session['admin'] = username
-            return redirect(url_for('admin_dashboard'))
-            
-        return "Invalid admin credentials!"
-        
-    return render_template('admin_login.html')
+@app.route("/doctor/<doctor_id>")
+def doctor_details(doctor_id):
+    res = doctors_table.get_item(Key={"doctor_id": doctor_id})
+    doctor = res.get("Item")
+    return render_template("doctor_details.html", doctor=doctor)
 
-# ============================
+# ========================
+# APPOINTMENTS PAGE
+# ========================
+@app.route("/appointments")
+def appointments_page():
+    if not is_logged_in():
+        return redirect(url_for("login"))
+
+    appts = appointments_table.scan().get("Items", [])
+    my_appts = [a for a in appts if a["patient_id"] == session["patient_id"]]
+
+    doctors = doctors_table.scan().get("Items", [])
+    return render_template("appointments.html", doctors=doctors, appointments=my_appts)
+
+# ========================
+# BOOK APPOINTMENT
+# ========================
+@app.route("/book-appointment", methods=["POST"])
+def book_appointment():
+    if not is_logged_in():
+        return redirect(url_for("login"))
+
+    appointments_table.put_item(Item={
+        "appointment_id": str(uuid.uuid4()),
+        "patient_id": session["patient_id"],
+        "patient_email": session["patient_email"],
+        "doctor": request.form["doctor"],
+        "date": request.form["date"],
+        "time": request.form["time"],
+        "status": "Booked",
+        "timestamp": datetime.now().isoformat()
+    })
+
+    flash("Appointment booked successfully")
+    return redirect(url_for("appointments_page"))
+
+# ========================
+# CANCEL APPOINTMENT
+# ========================
+@app.route("/cancel/<appt_id>")
+def cancel(appt_id):
+    res = appointments_table.get_item(Key={"appointment_id": appt_id})
+    appt = res.get("Item")
+
+    if appt:
+        appt["status"] = "Cancelled"
+        appointments_table.put_item(Item=appt)
+
+    flash("Appointment cancelled")
+    return redirect(url_for("appointments_page"))
+
+# ========================
+# PROFILE
+# ========================
+@app.route("/profile", methods=["GET", "POST"])
+def profile():
+    if not is_logged_in():
+        return redirect(url_for("login"))
+
+    pid = session.get("patient_id")
+
+    patients = patients_table.scan().get("Items", [])
+    patient = next((p for p in patients if p["patient_id"] == pid), None)
+
+    if not patient:
+        flash("Session expired. Please login again.")
+        session.clear()
+        return redirect(url_for("login"))
+
+    appts = appointments_table.scan().get("Items", [])
+    my_appts = [a for a in appts if a["patient_id"] == pid]
+
+    doctors = doctors_table.scan().get("Items", [])
+
+    if request.method == "POST":
+        appointments_table.put_item(Item={
+            "appointment_id": str(uuid.uuid4()),
+            "patient_id": pid,
+            "patient_email": session["patient_email"],
+            "doctor": request.form["doctor"],
+            "date": request.form["date"],
+            "time": request.form["time"],
+            "status": "Booked",
+            "timestamp": datetime.now().isoformat()
+        })
+
+        flash("Appointment booked successfully!")
+        return redirect(url_for("profile"))
+
+    return render_template("profile.html", patient=patient, appointments=my_appts, doctors=doctors)
+
+# ========================
 # ADMIN DASHBOARD
-# ============================
-@app.route('/admin/dashboard')
+# ========================
+@app.route("/admin/dashboard")
 def admin_dashboard():
-    if 'admin' not in session:
-        return redirect(url_for('admin_login'))
-    
-    users = users_table.scan().get('Items', [])
-    projects = projects_table.scan().get('Items', [])
-    enrollments = enrollments_table.scan().get('Items', [])
-    
-    enrollments_dict = {item['username']: item['project_ids'] for item in enrollments}
-    users_dict = {u['username']: u['password'] for u in users}
+    if "admin" not in session:
+        return redirect(url_for("login"))
+
+    doctors = doctors_table.scan().get("Items", [])
+    patients = patients_table.scan().get("Items", [])
+    appointments = appointments_table.scan().get("Items", [])
+    contacts = contacts_table.scan().get("Items", [])
 
     return render_template(
-        'admin_dashboard.html',
-        username=session['admin'],
-        projects=projects,
-        users=users_dict,
-        enrollments=enrollments_dict
+        "admin_dashboard.html",
+        doctors=doctors,
+        patients=patients,
+        appointments=appointments,
+        contacts=contacts
     )
 
-# ============================
-# ADMIN CREATE PROJECT
-# ============================
-@app.route('/admin/create-project', methods=['GET', 'POST'])
-def admin_create_project():
-    if 'admin' not in session:
-        return redirect(url_for('admin_login'))
-        
-    if request.method == 'POST':
-        title = request.form['title']
-        problem_statement = request.form['problem_statement']
-        solution_overview = request.form['solution_overview']
-        
-        image = request.files['image']
-        document = request.files['document']
-        
-        image_filename = None
-        doc_filename = None
+# ========================
+# ADMIN ADD DOCTOR
+# ========================
+@app.route("/admin/add-doctor", methods=["GET", "POST"])
+def add_doctor():
+    if "admin" not in session:
+        return redirect(url_for("login"))
 
-        if image:
-            image_filename = secure_filename(image.filename)
-            image.save(os.path.join(app.config['UPLOAD_FOLDER'], image_filename))
-            
-        if document:
-            doc_filename = secure_filename(document.filename)
-            document.save(os.path.join(app.config['UPLOAD_FOLDER'], doc_filename))
-            
-        project_id = str(uuid.uuid4())
-        
-        new_project = {
-            'id': project_id,
-            'title': title,
-            'problem_statement': problem_statement,
-            'solution_overview': solution_overview,
-            'image': image_filename,
-            'document': doc_filename
-        }
-        
-        projects_table.put_item(Item=new_project)
-        
-        # SNS Notification
-        send_notification(
-            "New Project Created",
-            f"Project '{title}' has been created by admin {session['admin']}."
-        )
-        
-        return redirect(url_for('admin_dashboard'))
-        
-    return render_template('admin_create_project.html', username=session['admin'])
+    if request.method == "POST":
+        doctors_table.put_item(Item={
+            "doctor_id": str(uuid.uuid4()),
+            "name": request.form["name"],
+            "specialty": request.form["specialty"],
+            "experience": request.form["experience"],
+            "image": request.form["image"]
+        })
+        return redirect(url_for("admin_dashboard"))
 
-# ============================
-# ADMIN LOGOUT
-# ============================
-@app.route('/admin/logout')
-def admin_logout():
-    session.pop('admin', None)
-    return redirect(url_for('index'))
+    return render_template("add_doctor.html")
 
-# ============================
-# RUN APP
-# ============================
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+# ========================
+# ADMIN EDIT DOCTOR
+# ========================
+@app.route("/admin/edit-doctor/<doctor_id>", methods=["GET", "POST"])
+def edit_doctor(doctor_id):
+    if "admin" not in session:
+        return redirect(url_for("login"))
 
+    res = doctors_table.get_item(Key={"doctor_id": doctor_id})
+    doctor = res.get("Item")
 
+    if request.method == "POST":
+        doctor.update({
+            "name": request.form["name"],
+            "specialty": request.form["specialty"],
+            "experience": request.form["experience"],
+            "image": request.form["image"]
+        })
+        doctors_table.put_item(Item=doctor)
+        return redirect(url_for("admin_dashboard"))
+
+    return render_template("add_doctor.html", doctor=doctor, edit=True)
+
+# ========================
+# ADMIN DELETE DOCTOR
+# ========================
+@app.route("/admin/delete-doctor/<doctor_id>")
+def delete_doctor(doctor_id):
+    if "admin" not in session:
+        return redirect(url_for("login"))
+
+    doctors_table.delete_item(Key={"doctor_id": doctor_id})
+    return redirect(url_for("admin_dashboard"))
+
+# ========================
+# ERROR HANDLERS
+# ========================
+@app.errorhandler(404)
+def not_found(e):
+    return render_template("404.html"), 404
+
+@app.errorhandler(500)
+def error(e):
+    return render_template("500.html"), 500
+
+# ========================
+# RUN (AWS SAFE)
+# ========================
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
