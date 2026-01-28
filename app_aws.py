@@ -146,6 +146,10 @@ def doctors():
 def doctor_details(doctor_id):
     res = doctors_table.get_item(Key={"doctor_id": doctor_id})
     doctor = res.get("Item")
+
+    if not doctor:
+        return redirect(url_for("doctors"))
+
     return render_template("doctor_details.html", doctor=doctor)
 
 # ========================
@@ -330,3 +334,4 @@ def error(e):
 # ========================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
