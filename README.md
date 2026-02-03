@@ -92,8 +92,6 @@ Appointments</br>
 Contact Messages</br>
 ## Hosting</br>
 Amazon EC2 runs the Flask application server</br>
-## Notifications (Optional / Extendable)</br>
-Amazon SNS for email or system alerts</br>
 ## Security</br>
 AWS IAM for secure permissions and controlled AWS resource access</br>
 Password hashing using Werkzeug Security</br>
@@ -105,6 +103,6 @@ Password hashing using Werkzeug Security</br>
 Language: Python 3.x</br>
 Web Framework: Flask</br>
 Cloud Provider: Amazon Web Services (AWS)</br>
-AWS Services Used: EC2, DynamoDB, SNS, IAM</br>
+AWS Services Used: EC2, DynamoDB, IAM</br>
 Frontend: HTML5, CSS3, JavaScript</br>
 Security: Werkzeug Password Hashing</br>
