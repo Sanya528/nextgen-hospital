@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
-import uuid, random, os
+import uuid
+import random
+import os
 from datetime import datetime
 import boto3
 
@@ -8,7 +10,7 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "nextgen_secret")
 
 # ========================
-# AWS CONFIG
+# AWS CONFIG (DynamoDB ONLY)
 # ========================
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 dynamodb = boto3.resource("dynamodb", region_name=REGION)
@@ -74,8 +76,8 @@ def register():
     if request.method == "POST":
         email = request.form["email"].strip().lower()
 
-        existing = patients_table.scan().get("Items", [])
-        for p in existing:
+        patients = patients_table.scan().get("Items", [])
+        for p in patients:
             if p.get("email") == email:
                 flash("Email already registered")
                 return redirect(url_for("login"))
@@ -130,25 +132,21 @@ def logout():
     return redirect(url_for("home"))
 
 # ========================
-# DOCTORS LIST
+# DOCTORS
 # ========================
 @app.route("/doctors")
 def doctors():
     doctors = doctors_table.scan().get("Items", [])
     return render_template("doctors.html", doctors=doctors)
 
-# ========================
-# DOCTOR DETAILS (FIXED)
-# ========================
 @app.route("/doctor/<doctor_id>")
 def doctor_details(doctor_id):
     res = doctors_table.get_item(Key={"doctor_id": doctor_id})
     doctor = res.get("Item")
-
     return render_template("doctor_details.html", doctor=doctor)
 
 # ========================
-# APPOINTMENTS PAGE
+# APPOINTMENTS
 # ========================
 @app.route("/appointments")
 def appointments_page():
@@ -161,9 +159,6 @@ def appointments_page():
     doctors = doctors_table.scan().get("Items", [])
     return render_template("appointments.html", doctors=doctors, appointments=my_appts)
 
-# ========================
-# BOOK APPOINTMENT
-# ========================
 @app.route("/book-appointment", methods=["POST"])
 def book_appointment():
     if not is_logged_in():
@@ -183,9 +178,6 @@ def book_appointment():
     flash("Appointment booked")
     return redirect(url_for("appointments_page"))
 
-# ========================
-# CANCEL APPOINTMENT (FIXED)
-# ========================
 @app.route("/cancel/<appointment_id>")
 def cancel(appointment_id):
     res = appointments_table.get_item(Key={"appointment_id": appointment_id})
@@ -215,7 +207,6 @@ def profile():
         session.clear()
         return redirect(url_for("login"))
 
-    # Book from profile
     if request.method == "POST":
         appointments_table.put_item(Item={
             "appointment_id": str(uuid.uuid4()),
@@ -235,10 +226,15 @@ def profile():
 
     doctors = doctors_table.scan().get("Items", [])
 
-    return render_template("profile.html", patient=patient, appointments=my_appts, doctors=doctors)
+    return render_template(
+        "profile.html",
+        patient=patient,
+        appointments=my_appts,
+        doctors=doctors
+    )
 
 # ========================
-# ADMIN DASHBOARD
+# ADMIN
 # ========================
 @app.route("/admin/dashboard")
 def admin_dashboard():
@@ -250,16 +246,14 @@ def admin_dashboard():
     appointments = appointments_table.scan().get("Items", [])
     contacts = contacts_table.scan().get("Items", [])
 
-    return render_template("admin_dashboard.html",
+    return render_template(
+        "admin_dashboard.html",
         doctors=doctors,
         patients=patients,
         appointments=appointments,
         contacts=contacts
     )
 
-# ========================
-# ADMIN ADD DOCTOR
-# ========================
 @app.route("/admin/add-doctor", methods=["GET", "POST"])
 def add_doctor():
     if "admin" not in session:
@@ -280,4 +274,4 @@ def add_doctor():
 # RUN
 # ========================
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=5000, debug=True)
